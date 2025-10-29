@@ -1,9 +1,6 @@
 ﻿using CSC.Nodestuff;
 using CSC.Search;
-using System.Diagnostics;
 using System.Media;
-using System.Threading.Tasks;
-using static CSC.StoryItems.StoryEnums;
 
 namespace CSC.Components
 {
@@ -12,6 +9,10 @@ namespace CSC.Components
         private SearchSettings settings = SearchSettings.None;
         private bool NodeTypeSet = false;
         private bool ignoreModifierCheckState = false;
+        private DateTime lastTextEdit = DateTime.UtcNow;
+        private const int TypingDelayTime = 200;
+        private readonly System.Timers.Timer searchRecheckTask = new();
+        public bool TypingEnded => (DateTime.UtcNow - lastTextEdit).TotalMilliseconds > TypingDelayTime;
 
         public SearchDialog(Dictionary<string, NodeStore> stores)
         {
@@ -37,6 +38,16 @@ namespace CSC.Components
             nodetype.Items.Add("Any");
             nodetype.Items.AddRange(Enum.GetNames<NodeType>());
             nodetype.SelectedIndex = 0;
+
+            searchRecheckTask.AutoReset = true;
+            searchRecheckTask.Interval = TypingDelayTime * 1.05f;
+            searchRecheckTask.Elapsed += (_, _) =>
+            {
+                if (TypingEnded)
+                {
+                    Invoke(() => SearchImpl());
+                }
+            };
         }
 
         private void OnFormClosing(object? sender, FormClosingEventArgs? e)
@@ -59,6 +70,7 @@ namespace CSC.Components
 
         private void Searchterm_TextChanged(object sender, EventArgs e)
         {
+            lastTextEdit = DateTime.UtcNow;
             SearchImpl();
         }
 
@@ -68,6 +80,25 @@ namespace CSC.Components
             {
                 SystemSounds.Beep.Play();
                 return;
+            }
+
+            if (!TypingEnded)
+            {
+                if (!searchRecheckTask.Enabled)
+                {
+                    searchRecheckTask.Start();
+                }
+                //check again in a little more than the delay time
+                return;
+            }
+            searchRecheckTask.Stop();
+
+            //skip early
+            if (searchterm.Text.Length == 0)
+            {
+                resultsTree.SuspendLayout();
+                resultsTree.Nodes.Clear();
+                resultsTree.PerformLayout();
             }
 
             resultsTree.Enabled = false;

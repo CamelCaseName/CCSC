@@ -141,7 +141,6 @@ public partial class Main : Form
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
     //############ TODOS before first release:
-    //todo we need to pause updating the search during a typing streak and cumulatively update after its done
     //fix all missing node.texts
     //########################################################
 
