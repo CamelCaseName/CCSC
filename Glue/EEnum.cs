@@ -2,11 +2,15 @@ namespace CSC.Glue
 {
     public static class EEnum
     {
-        public static string StringParse<T>(string value) where T : struct, Enum
+        public static string Parse<T>(string value) where T : struct, Enum
         {
             if (Enum.TryParse(value, out T result))
             {
                 return result.ToString()!;
+            }
+            else if (int.TryParse(value, out int i))
+            {
+                return Parse<T>(i);
             }
             else
             {
@@ -25,7 +29,8 @@ namespace CSC.Glue
                 return default;
             }
         }
-        public static string StringParse<T>(int value) where T : struct, Enum
+
+        public static string Parse<T>(int value) where T : struct, Enum
         {
             if (Enum.IsDefined(typeof(T), value))
             {

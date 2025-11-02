@@ -1,6 +1,7 @@
 ﻿using CSC.Direct2D;
 using CSC.Glue;
 using CSC.StoryItems;
+using Silk.NET.Core.Win32Extras;
 using System.Data;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
@@ -312,210 +313,11 @@ namespace CSC.Nodestuff
                 case NodeType.GameEvent:
                 {
                     GameEvent gevent = Data<GameEvent>()!;
-                    try
+                    if(gevent is null)
                     {
-                        //todo
-                        switch (gevent.EventType)
-                        {
-                            case GameEvents.AddForce:
-                            {
-                                break;
-                            }
-                            case GameEvents.AllowPlayerSave:
-                            {
-                                break;
-                            }
-                            case GameEvents.ChangeBodyScale:
-                            {
-                                break;
-                            }
-                            case GameEvents.CharacterFromCharacterGroup:
-                            {
-                                break;
-                            }
-                            case GameEvents.CharacterFunction:
-                            {
-                                break;
-                            }
-                            case GameEvents.Clothing:
-                            {
-                                return gevent.Character + "'s  " + (gevent.Option4 == 0 ? (((ClothingType)int.Parse(gevent.Value!)).ToString()) : gevent.Value) + " in set " + (gevent.Option3 == 0 ? "any" : (gevent.Option3 - 1).ToString());
-                            }
-                            case GameEvents.Combat:
-                            {
-                                break;
-                            }
-                            case GameEvents.CombineValue:
-                            {
-                                return "Add " + gevent.Character + ":" + gevent.Key + " to " + gevent.Character2 + ":" + gevent.Value;
-                            }
-                            case GameEvents.CutScene:
-                            {
-                                return ((CutsceneAction)gevent.Option).ToString() + " " + gevent.Key + " with " + gevent.Character + ", " + gevent.Value + ", " + gevent.Value2 + ", " + gevent.Character2 + " (location: " + gevent.Option2 + ")";
-                            }
-                            case GameEvents.Dialogue:
-                            {
-                                return ((DialogueAction)gevent.Option).ToString() + " " + gevent.Character + "'s Dialogue " + gevent.Value;
-                            }
-                            case GameEvents.DisableNPC:
-                            {
-                                return "Disable NPC " + gevent.Character;
-                            }
-                            case GameEvents.DisplayGameMessage:
-                            {
-                                return "Display Message: " + gevent.Value;
-                            }
-                            case GameEvents.Door:
-                            {
-                                return ((DoorAction)gevent.Option).ToString() + " " + gevent.Key!.ToString();
-                            }
-                            case GameEvents.Emote:
-                            {
-                                break;
-                            }
-                            case GameEvents.EnableNPC:
-                            {
-                                return "Enable NPC " + gevent.Character;
-                            }
-                            case GameEvents.EventTriggers:
-                            {
-                                return gevent.Character + (gevent.Option == 0 ? " Perform Event " : " Set Enabled ") + (gevent.Option2 == 0 ? "(False) " : "(True) ") + gevent.Value;
-                            }
-                            case GameEvents.FadeIn:
-                            {
-                                return "Fade in over " + gevent.Value + "s";
-                            }
-                            case GameEvents.FadeOut:
-                            {
-                                return "Fade out over " + gevent.Value + "s";
-                            }
-                            case GameEvents.IKReach:
-                            {
-                                break;
-                            }
-                            case GameEvents.Intimacy:
-                            {
-                                break;
-                            }
-                            case GameEvents.Item:
-                            {
-                                return gevent.Key!.ToString() + " " + ((ItemEventAction)gevent.Option).ToString() + " (" + gevent.Value + ") " + " (" + (gevent.Option2 == 1 ? "True" : "False") + ") ";
-                            }
-                            case GameEvents.ItemFromItemGroup:
-                            {
-                                return gevent.Key!.ToString() + " " + ((ItemGroupAction)gevent.Option).ToString() + " (" + gevent.Value + ") " + " (" + (gevent.Option2 == 1 ? "True" : "False") + ") ";
-                            }
-                            case GameEvents.LookAt:
-                            {
-                                break;
-                            }
-                            case GameEvents.Personality:
-                            {
-                                return gevent.Character + " " + ((PersonalityTraits)gevent.Option).ToString() + " " + ((Modification)gevent.Option2).ToString() + " " + gevent.Value;
-                            }
-                            case GameEvents.Property:
-                            {
-                                return gevent.Character + " " + EEnum.StringParse<InteractiveProperties>(gevent.Value!).ToString() + " " + (gevent.Option2 == 1 ? "True" : "False");
-                            }
-                            case GameEvents.MatchValue:
-                            {
-                                return "set " + gevent.Character + ":" + gevent.Key + " to " + gevent.Character2 + ":" + gevent.Value;
-                            }
-                            case GameEvents.ModifyValue:
-                            {
-                                return (gevent.Option == 0 ? "Equals " : "Add ") + gevent.Character + ":" + gevent.Key + " to " + gevent.Value;
-                            }
-                            case GameEvents.Player:
-                            {
-                                return ((PlayerActions)gevent.Option).ToString() + (gevent.Option == 0 ? gevent.Option2 == 0 ? " Add " : " Remove " : " ") + gevent.Value + "/" + gevent.Character;
-                            }
-                            case GameEvents.PlaySoundboardClip:
-                            {
-                                break;
-                            }
-                            case GameEvents.Pose:
-                            {
-                                return "Set " + gevent.Character + " Pose no. " + gevent.Value + " " + (gevent.Option == 0 ? " False" : " True");
-                            }
-                            case GameEvents.Quest:
-                            {
-                                return ((QuestActions)gevent.Option).ToString() + " the quest " + gevent.Value + " from " + gevent.Character;
-                            }
-                            case GameEvents.RandomizeIntValue:
-                            {
-                                return "set " + gevent.Character + ":" + gevent.Key + " to a random value between " + gevent.Value + " and " + gevent.Value2;
-                            }
-                            case GameEvents.ResetReactionCooldown:
-                            {
-                                break;
-                            }
-                            case GameEvents.Roaming:
-                            {
-                                break;
-                            }
-                            case GameEvents.SendEvent:
-                            {
-                                return gevent.Character + " " + ((SendEvents)gevent.Option).ToString();
-                            }
-                            case GameEvents.SetPlayerPref:
-                            {
-                                break;
-                            }
-                            case GameEvents.Social:
-                            {
-                                return gevent.Character + " " + ((SocialStatuses)gevent.Option).ToString() + " " + gevent.Character2 + (gevent.Option2 == 0 ? " Equals " : " Add ") + gevent.Value;
-                            }
-                            case GameEvents.State:
-                            {
-                                return (gevent.Option == 0 ? "Add " : "Remove ") + gevent.Character + " State " + ((InteractiveStates)int.Parse(gevent.Value!)).ToString();
-                            }
-                            case GameEvents.TriggerBGC:
-                            {
-                                return "trigger " + gevent.Character + "'s BGC " + gevent.Value + " as " + ((ImportanceSpecified)gevent.Option).ToString();
-                            }
-                            case GameEvents.Turn:
-                            {
-                                break;
-                            }
-                            case GameEvents.TurnInstantly:
-                            {
-                                break;
-                            }
-                            case GameEvents.UnlockAchievement:
-                            {
-                                break;
-                            }
-                            case GameEvents.WalkTo:
-                            {
-                                break;
-                            }
-                            case GameEvents.WarpOverTime:
-                            {
-                                break;
-                            }
-                            case GameEvents.WarpTo:
-                            {
-                                break;
-                            }
-                            case GameEvents.None:
-                            {
-                                return "None";
-                            }
-                            default:
-                            {
-                                break;
-                            }
-                        }
-                        goto case default;
+                        return StaticText;
                     }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                        gevent.Value = "0";
-                        gevent.Key = "";
-                        gevent.Value2 = "";
-                        return Text;
-                    }
+                    return gevent.ToString();
                 }
                 case NodeType.EventTrigger:
                 {
@@ -566,14 +368,7 @@ namespace CSC.Nodestuff
                 }
                 case NodeType.Pose:
                 {
-                    if (int.TryParse(ID, out int res))
-                    {
-                        return ((Poses)res).ToString();
-                    }
-                    else
-                    {
-                        return "Pose" + ID;
-                    }
+                    return "Pose " + EEnum.Parse<Poses>(ID);
                 }
                 case NodeType.Inventory:
                 case NodeType.StoryItem:

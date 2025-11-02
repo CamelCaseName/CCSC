@@ -1,5 +1,8 @@
-﻿using System.Text.Json.Serialization;
+﻿using CSC.Glue;
+using System.Diagnostics;
+using System.Text.Json.Serialization;
 using static CSC.StoryItems.StoryEnums;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CSC.StoryItems
 {
@@ -451,9 +454,17 @@ namespace CSC.StoryItems
         private bool useConditions = false;
         private bool displayInEditor = true;
         private List<Criterion> criteria = [];
+        private bool TextNeedsUpdate;
+        private string _text = string.Empty;
 
         public event Action<object>? OnBeforeChange;
-        public event Action<object>? OnAfterChange;
+        public event Action<object>? OnAfterChange = (o) =>
+        {
+            if (o is GameEvent e)
+            {
+                e.TextNeedsUpdate = true;
+            }
+        };
         public EventSpecialHandling Handling { get => handling; set { OnBeforeChange?.Invoke(this); handling = value; OnAfterChange?.Invoke(this); } }
         public string Version { get => version; set { OnBeforeChange?.Invoke(this); version = value; OnAfterChange?.Invoke(this); } }
         public string Id { get => id; set { OnBeforeChange?.Invoke(this); id = value; OnAfterChange?.Invoke(this); } }
@@ -535,6 +546,442 @@ namespace CSC.StoryItems
         }
 
         public override int GetHashCode() => base.GetHashCode();
+
+        public override string ToString()
+        {
+            if (TextNeedsUpdate)
+            {
+                _text = ToS();
+                TextNeedsUpdate = false;
+            }
+
+            return _text;
+
+            string ToS()
+            {
+                try
+                {
+                    //todo
+                    switch (EventType)
+                    {
+                        case GameEvents.AddForce:
+                        {
+                            return $"{EventType} {Character} {Value}";
+                        }
+                        case GameEvents.AllowPlayerSave:
+                        {
+                            return $"{EventType} {EEnum.Parse<BoolCritera>(Option)}";
+                        }
+                        case GameEvents.ChangeBodyScale:
+                        {
+                            return $"{EventType} {Character} {Value} {Value2}";
+                        }
+                        case GameEvents.CharacterFromCharacterGroup:
+                        {
+                            //todo (charactergroups)
+                            break;
+                        }
+                        case GameEvents.CharacterFunction:
+                        {
+                            //todo (characterfunctions)
+                            break;
+                        }
+                        case GameEvents.Clothing:
+                        {
+                            switch ((ClothingOptions)Option2)
+                            {
+                                case ClothingOptions.Change:
+                                {
+                                    switch ((ClothingChangeOptions)Option4)
+                                    {
+                                        case ClothingChangeOptions.ClothingType:
+                                        {
+                                            if (Option == 0)
+                                            {
+                                                return $"{EventType} {Character} {EEnum.Parse<ClothingOptions>(Option2)} {EEnum.Parse<ClothingChangeOptions>(Option4)} {EEnum.Parse<ClothingType>(Value)} {EEnum.Parse<OnOff>(Option)} {EEnum.Parse<SetEnum>(Option3)}";
+                                            }
+                                            else
+                                            {
+                                                return $"{EventType} {Character} {EEnum.Parse<ClothingOptions>(Option2)} {EEnum.Parse<ClothingChangeOptions>(Option4)} {EEnum.Parse<ClothingType>(Value)} {EEnum.Parse<OnOff>(Option)}";
+                                            }
+                                        }
+                                        case ClothingChangeOptions.AllOn:
+                                        case ClothingChangeOptions.AllOff:
+                                        {
+                                            return $"{EventType} {Character} {EEnum.Parse<ClothingOptions>(Option2)} {EEnum.Parse<ClothingChangeOptions>(Option4)}";
+                                        }
+                                        case ClothingChangeOptions.ChangeItem:
+                                        {
+                                            return $"{EventType} {Character} {EEnum.Parse<ClothingOptions>(Option2)} {EEnum.Parse<ClothingChangeOptions>(Option4)} {Value} {EEnum.Parse<OnOff>(Option)}";
+                                        }
+                                        case ClothingChangeOptions.ChangeToOutfit:
+                                        {
+                                            return $"{EventType} {Character} {EEnum.Parse<ClothingOptions>(Option2)} {EEnum.Parse<ClothingChangeOptions>(Option4)} {Value}";
+                                        }
+                                        case ClothingChangeOptions.RemoveFromOutfit:
+                                        {
+                                            if (Option == 0)
+                                            {
+                                                return $"{EventType} {Character} {EEnum.Parse<ClothingOptions>(Option2)} {EEnum.Parse<ClothingChangeOptions>(Option4)} {EEnum.Parse<ClothingTypeOrName>(Option)} {Value}";
+                                            }
+                                            else
+                                            {
+                                                return $"{EventType} {Character} {EEnum.Parse<ClothingOptions>(Option2)} {EEnum.Parse<ClothingChangeOptions>(Option4)} {EEnum.Parse<OnOff>(Option)}  {EEnum.Parse<ClothingType>(Option3)}";
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                                case ClothingOptions.ToggleBloodyEffect:
+                                case ClothingOptions.ToggleWetEffect:
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<ClothingOptions>(Option2)} {EEnum.Parse<ClothingType>(Value)} {EEnum.Parse<OnOff>(Option)}";
+                                }
+                            }
+                        }
+                        break;
+                        case GameEvents.Combat:
+                        {
+                            if (Option == (int)(CombatOptions.Fight))
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<CombatOptions>(Option)} {Character2}";
+                            }
+                            else
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<CombatOptions>(Option)}";
+                            }
+                        }
+                        case GameEvents.CutScene:
+                        {
+                            switch ((CutsceneAction)Option)
+                            {
+                                default:
+                                case CutsceneAction.EndAnySceneWithPlayer:
+                                {
+                                    return $"{EventType} {EEnum.Parse<CutsceneAction>(Option)}";
+                                }
+                                case CutsceneAction.EndScene:
+                                {
+                                    return $"{EventType} {EEnum.Parse<CutsceneAction>(Option)} {EEnum.Parse<Cutscenes>(Key)}";
+                                }
+                                case CutsceneAction.PlayRandomSceneFromLocation:
+                                {
+                                    return $"{EventType} {EEnum.Parse<CutsceneAction>(Option)} {EEnum.Parse<Zones>(Option2)} {Character} {Value} {Value2} {Character2}";
+                                }
+                                case CutsceneAction.PlayRandomSceneFromCurrentLocation:
+                                {
+                                    return $"{EventType} {EEnum.Parse<CutsceneAction>(Option)} {Character} {Value} {Value2} {Character2}";
+                                }
+                                case CutsceneAction.PlayScene:
+                                {
+                                    return $"{EventType} {EEnum.Parse<CutsceneAction>(Option)} {EEnum.Parse<Cutscenes>(Key)} {Character} {Value} {Value2} {Character2}";
+                                }
+                            }
+                        }
+                        case GameEvents.Dialogue:
+                        {
+                            if (((DialogueAction)Option) == DialogueAction.Overhear)
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<DialogueAction>(Option)} {Character2}";
+                            }
+                            else if (((DialogueAction)Option) == DialogueAction.Trigger || ((DialogueAction)Option) == DialogueAction.SetStartDialogue)
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<DialogueAction>(Option)} {Value}";
+                            }
+                            else
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<DialogueAction>(Option)}";
+                            }
+                        }
+                        case GameEvents.DisableNPC:
+                        case GameEvents.EnableNPC:
+                        {
+                            return $"{EventType} {Character}";
+                        }
+                        case GameEvents.DisplayGameMessage:
+                        {
+                            return $"{EventType} {EEnum.Parse<GameMessageType>(Option)} {Value}";
+                        }
+                        case GameEvents.Door:
+                        {
+                            return $"{EventType} {Key} {EEnum.Parse<DoorAction>(Option)}";
+                        }
+                        case GameEvents.Emote:
+                        {
+                            return $"{EventType} {Character} {EEnum.Parse<GameMessageType>(Value)} {Value2}";
+                        }
+                        case GameEvents.EventTriggers:
+                        {
+                            if (Option == 1)
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<TriggerOptions>(Option)} {EEnum.Parse<BoolCritera>(Option2)}";
+                            }
+                            else
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<TriggerOptions>(Option)} {Value}";
+                            }
+                        }
+                        case GameEvents.FadeIn:
+                        case GameEvents.FadeOut:
+                        {
+                            return $"{EventType} {Value}";
+                        }
+                        case GameEvents.IKReach:
+                        {
+                            if (Option == 0)
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<IKTargets>(Option2)} {EEnum.Parse<OnOff>(Option)} {Key}";
+                            }
+                            else
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<IKTargets>(Option2)} {EEnum.Parse<OnOff>(Option)}";
+                            }
+                        }
+                        case GameEvents.Intimacy:
+                        {
+                            if (Option == 0)
+                            {
+                                if (!(Enum.Parse<IntimacyEvents>(Value) is IntimacyEvents.End or IntimacyEvents.StartMasturbation))
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<IntimacyOptions>(Option2)} {EEnum.Parse<IntimacyEvents>(Value)} {Character2}";
+                                }
+                                else
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<IntimacyOptions>(Option2)} {EEnum.Parse<IntimacyEvents>(Value)}";
+                                }
+                            }
+                            else
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<IntimacyOptions>(Option2)}";
+                            }
+                        }
+                        case GameEvents.Item:
+                        {
+                            //todo seems pretty involved
+                            break;
+                        }
+                        case GameEvents.ItemFromItemGroup:
+                        {
+                            //todo (itemgroups) just as involved as the item gameevent type
+                            break;
+                        }
+                        case GameEvents.LookAt:
+                        {
+                            switch ((LookAtTargets)Option)
+                            {
+                                case LookAtTargets.Character:
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<LookAtTargets>(Option2)} {Character2}";
+                                }
+                                case LookAtTargets.GameObject:
+                                case LookAtTargets.InteractiveItem:
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<LookAtTargets>(Option2)} {Value}";
+                                }
+                            }
+                            return $"{EventType} {Character} {EEnum.Parse<LookAtTargets>(Option)}";
+                        }
+                        case GameEvents.Personality:
+                        {
+                            return $"{EventType} {Character} {EEnum.Parse<PersonalityTraits>(Option)} {EEnum.Parse<Modification>(Option2)} {Value}";
+                        }
+                        case GameEvents.Property:
+                        {
+                            return $"{EventType} {Character} {EEnum.Parse<InteractiveProperties>(Value)} {EEnum.Parse<BoolCritera>(Option)}";
+                        }
+                        case GameEvents.MatchValue:
+                        case GameEvents.CombineValue:
+                        {
+                            return $"{Character} {Key} {EventType} {Character2} {Value}";
+                        }
+                        case GameEvents.ModifyValue:
+                        {
+                            return $"{Character} {Key} {EventType} {EEnum.Parse<Modification>(Option)} {Value}";
+                        }
+                        case GameEvents.Player:
+                        {
+                            switch ((PlayerActions)Option)
+                            {
+                                case PlayerActions.Inventory:
+                                {
+                                    return $"{EventType} {EEnum.Parse<PlayerActions>(Option)} {EEnum.Parse<AddRemoveActions>(Option2)} {Value}";
+                                }
+                                case PlayerActions.TriggerGiveTo:
+                                {
+                                    return $"{EventType} {EEnum.Parse<PlayerActions>(Option)} {Character}";
+                                }
+                                case PlayerActions.ToggleRadialFor:
+                                {
+                                    return $"{EventType} {EEnum.Parse<PlayerActions>(Option)} {EEnum.Parse<RadialTriggerOptions>(Option2)} {Value}";
+                                }
+                                case PlayerActions.Sit:
+                                case PlayerActions.LayDown:
+                                case PlayerActions.GrabFromInventory:
+                                {
+                                    return $"{EventType} {EEnum.Parse<PlayerActions>(Option)} {Value}";
+                                }
+                            }
+                            return $"{EventType} {EEnum.Parse<PlayerActions>(Option)}";
+                        }
+                        case GameEvents.PlaySoundboardClip:
+                        {
+                            return $"{EventType} {EEnum.Parse<SupportedClipNames>(Option)}";
+                        }
+                        case GameEvents.Pose:
+                        {
+                            if (Option == (int)BoolCritera.True)
+                            {
+                                if (Option2 == (int)Gender.Female)
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<BoolCritera>(Option)} {EEnum.Parse<FemalePoses>(Value)}";
+                                }
+                                else
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<BoolCritera>(Option)} {EEnum.Parse<MalePoses>(Value)}";
+                                }
+                            }
+                            else
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<BoolCritera>(Option)}";
+                            }
+                        }
+                        case GameEvents.Quest:
+                        {
+                            return $"{EventType} {Value}|{Key} {EEnum.Parse<QuestActions>(Option)}";
+                        }
+                        case GameEvents.RandomizeIntValue:
+                        {
+                            return $"{EventType} {Character} {Key} to inbetween {Value} {Value2}";
+                        }
+                        case GameEvents.ResetReactionCooldown:
+                        {
+                            return $"{EventType} {Character} {Character2} {EEnum.Parse<EventTypes>(Option)}";
+                        }
+                        case GameEvents.Roaming:
+                        {
+                            if (Option == (int)RoamingOptions.Allow)
+                            {
+                                return $"{EventType} {EEnum.Parse<RoamingOptions>(Option)} {EEnum.Parse<BoolCritera>(Option2)}";
+                            }
+                            else if (Option == (int)RoamingOptions.StopAllCurrentRoamingMotionTo
+                                    || Option == (int)RoamingOptions.AllowLocation
+                                    || Option == (int)RoamingOptions.ChangeLocation
+                                    || Option == (int)RoamingOptions.ProhibitLocation)
+                            {
+                                return $"{EventType} {EEnum.Parse<RoamingOptions>(Option)} {EEnum.Parse<LocationTargetOption>(Option3)} {Value}";
+                            }
+                            else
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<RoamingOptions>(Option)}";
+                            }
+                        }
+                        case GameEvents.SendEvent:
+                        {
+                            if (Option == (int)SendEventOptions.GameOver)
+                            {
+                                return $"{EventType} {EEnum.Parse<SendEventOptions>(Option)}";
+                            }
+                            else
+                            {
+                                if (Option == (int)SendEventOptions.PickupLeftHand || Option == (int)SendEventOptions.PickupRightHand)
+                                {
+                                    return $"{EventType} {EEnum.Parse<SendEventOptions>(Option)} {Character} {Key}";
+                                }
+                                else if (Option == (int)SendEventOptions.StartStripTease || Option == (int)SendEventOptions.StopStripTease)
+                                {
+                                    return $"{EventType} {EEnum.Parse<SendEventOptions>(Option)} {Character} {Value}";
+                                }
+                                else
+                                {
+                                    return $"{EventType} {EEnum.Parse<SendEventOptions>(Option)} {Character}";
+                                }
+                            }
+                        }
+                        case GameEvents.SetPlayerPref:
+                        {
+                            return $"{EventType} {EEnum.Parse<PlayerPrefs>(Key)} {Value}";
+                        }
+                        case GameEvents.Social:
+                        {
+                            switch ((SocialStatuses)Option)
+                            {
+                                case SocialStatuses.Mood:
+                                case SocialStatuses.Drunk:
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<SocialStatuses>(Option)} {EEnum.Parse<Modification>(Option2)} {Value}";
+                                }
+                                case SocialStatuses.Loves:
+                                case SocialStatuses.Likes:
+                                case SocialStatuses.Scared:
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<SocialStatuses>(Option)} {Character2} {EEnum.Parse<Modification>(Option2)} {Value}";
+                                }
+                                default:
+                                case SocialStatuses.SendText:
+                                case SocialStatuses.Offended:
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<SocialStatuses>(Option)}";
+                                }
+                                case SocialStatuses.TalkTo:
+                                {
+                                    return $"{EventType} {Character} {EEnum.Parse<SocialStatuses>(Option)} {Character2}";
+                                }
+                            }
+                        }
+                        case GameEvents.State:
+                        {
+                            return $"{EventType} {Character} {EEnum.Parse<InteractiveStates>(Value)} {EEnum.Parse<AddRemoveActions>(Option)}";
+                        }
+                        case GameEvents.TriggerBGC:
+                        {
+                            return $"{EventType} {Character} {EEnum.Parse<ImportanceSpecified>(Option)} {Value}";
+                        }
+                        case GameEvents.Turn:
+                        case GameEvents.TurnInstantly:
+                        {
+                            if (Option == 3)
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<TurnOptions>(Option)} {EEnum.Parse<LocationTargetOption>(Option2)} {Value}";
+                            }
+                            else
+                            {
+                                return $"{EventType} {Character} {EEnum.Parse<TurnOptions>(Option)}";
+                            }
+                        }
+                        case GameEvents.UnlockAchievement:
+                        {
+                            //todo (achievements) but not really important anyways
+                            break;
+                        }
+                        case GameEvents.WalkTo:
+                        {
+                            return $"{EventType} {Character} {EEnum.Parse<WalkToTargetOptions>(Option)} {Value}";
+                        }
+                        case GameEvents.WarpOverTime:
+                        {
+                            return $"{EventType} {Character} {EEnum.Parse<LocationTargetOption>(Option)} {Value} over {Value2} seconds";
+                        }
+                        case GameEvents.WarpTo:
+                        {
+                            return $"{EventType} {Character} {EEnum.Parse<LocationTargetOption>(Option)} {Value}";
+                        }
+                        default:
+                        case GameEvents.None:
+                        {
+                            return "None";
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    Value = "0";
+                    Key = "";
+                    Value2 = "";
+                }
+                return "None";
+            }
+        }
     }
 
     public sealed class EventTrigger : IItem

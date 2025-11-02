@@ -4,7 +4,6 @@ using CSC.Glue;
 using CSC.Nodestuff;
 using CSC.Search;
 using CSC.StoryItems;
-using Silk.NET.Core.Win32Extras;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -141,10 +140,12 @@ public partial class Main : Form
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
     //############ TODOS before first release:
-    //fix all missing node.texts
+    //todo fix all missing node.texts
+    //todo add missing node types from proeprtyinspector, except for criteria and charactergroups and achievements
     //########################################################
 
     //############ stuff to do after release
+    //todo optimize memory footprint of search
     //todo add story node cache on disk
     //todo add story search tree cache on disk
     //todo add info when trying to link incompatible notes
@@ -154,8 +155,8 @@ public partial class Main : Form
     //todo unify all node creation so its always the same
     //todo add grouping
     //todo add comments
-    //add charactergroups
-    //handle criteriagroups correctly
+    //todo add charactergroups
+    //todo handle criteriagroups correctly
     //########################################################
 
     public Main()
@@ -1711,7 +1712,10 @@ public partial class Main : Form
                 SetStartPositionsForNodesInList(10, 0, nodes[fileStore], notSet, false);
                 hadNodesNewlySet = true;
             }
-            CenterAndSelectNode(nodes[fileStore].Nodes.First(), 0.8f);
+            if (nodes[fileStore].Nodes.Count > 0)
+            {
+                CenterAndSelectNode(nodes[fileStore].Nodes.First(), 0.8f);
+            }
         }
 
         SelectedCharacter = lastCharacter;
@@ -3218,6 +3222,7 @@ public partial class Main : Form
 
                         break;
                     }
+                    case GameEvents.EnableNPC:
                     case GameEvents.DisableNPC:
                     {
                         PutCharacter1(node, gevent);
@@ -3227,16 +3232,7 @@ public partial class Main : Form
                     {
                         gevent.Key = "";
 
-                        var options = GetComboBox();
-                        options.Items.AddRange(Enum.GetNames<GameMessageType>());
-                        if (gevent.Option >= 21)
-                        {
-                            gevent.Option = 0;
-                        }
-                        options.SelectedIndex = gevent.Option / 10;
-                        options.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => gevent.Option = options.SelectedIndex);
-                        PropertyInspector.Controls.Add(options, GeventPropertyCounter++, 1);
-
+                        PutEnumOption<GameMessageType>(node, gevent);
                         PutTextValue(gevent);
 
                         break;
@@ -3253,11 +3249,6 @@ public partial class Main : Form
                         PutEnumValue<Emotions>(node, gevent);
                         PutNumberValue2(gevent);
 
-                        break;
-                    }
-                    case GameEvents.EnableNPC:
-                    {
-                        PutCharacter1(node, gevent);
                         break;
                     }
                     case GameEvents.EventTriggers:
@@ -3559,31 +3550,28 @@ public partial class Main : Form
                         {
                             PutEnumOption2<BoolCritera>(node, gevent);
                         }
-                        else
-                        {
-                            if (gevent.Option == (int)RoamingOptions.StopAllCurrentRoamingMotionTo
+                        else if (gevent.Option == (int)RoamingOptions.StopAllCurrentRoamingMotionTo
                                 || gevent.Option == (int)RoamingOptions.AllowLocation
                                 || gevent.Option == (int)RoamingOptions.ChangeLocation
                                 || gevent.Option == (int)RoamingOptions.ProhibitLocation)
+                        {
+                            PutEnumOption3<LocationTargetOption>(node, gevent);
+                            switch ((LocationTargetOption)gevent.Option3)
                             {
-                                PutEnumOption3<LocationTargetOption>(node, gevent);
-                                switch ((LocationTargetOption)gevent.Option3)
+                                case LocationTargetOption.MoveTarget:
                                 {
-                                    case LocationTargetOption.MoveTarget:
-                                    {
-                                        PutEnumValueText<MoveTargets>(node, gevent);
-                                        break;
-                                    }
-                                    case LocationTargetOption.Character:
-                                    {
-                                        PutEnumValueText<Characters>(node, gevent);
-                                        break;
-                                    }
-                                    case LocationTargetOption.Item:
-                                    {
-                                        PutEnumValueText<Items>(node, gevent);
-                                        break;
-                                    }
+                                    PutEnumValueText<MoveTargets>(node, gevent);
+                                    break;
+                                }
+                                case LocationTargetOption.Character:
+                                {
+                                    PutEnumValueText<Characters>(node, gevent);
+                                    break;
+                                }
+                                case LocationTargetOption.Item:
+                                {
+                                    PutEnumValueText<Items>(node, gevent);
+                                    break;
                                 }
                             }
                         }
@@ -4367,14 +4355,15 @@ public partial class Main : Form
             case NodeType.ItemGroupBehaviour:
             case NodeType.ItemGroupInteraction:
             case NodeType.BGCResponse:
+            //these arent necessary for simple stories
             case NodeType.CharacterGroup:
+            case NodeType.CriteriaGroup:
+            case NodeType.Achievement:
             //dont need these:
             case NodeType.State:
             case NodeType.Property:
             case NodeType.Social:
-            case NodeType.Achievement:
             case NodeType.Clothing:
-            case NodeType.CriteriaGroup:
             case NodeType.Cutscene:
             case NodeType.Door:
             case NodeType.Inventory:

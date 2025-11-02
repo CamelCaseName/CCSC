@@ -1938,7 +1938,7 @@ namespace CSC.Nodestuff
                             else if (dupeTo)
                             {
                                 //create and add property node, hasnt been referenced yet
-                                var property = new Node(gameEvent.Character + "Property" + gameEvent.Value, NodeType.Property, gameEvent.Character + EEnum.StringParse<InteractiveProperties>(gameEvent.Value!), gameEvent.Character);
+                                var property = new Node(gameEvent.Character + "Property" + gameEvent.Value, NodeType.Property, gameEvent.Character + EEnum.Parse<InteractiveProperties>(gameEvent.Value!), gameEvent.Character);
                                 Properties.Add(property);
                                 nodes.AddChild(node, property);
                                 property.DupeToOtherSorting(node.FileName);
