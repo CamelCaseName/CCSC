@@ -41,7 +41,7 @@ namespace CSC.Nodestuff
         Response,
         Social,
         State,
-        StoryItem,
+        InteractiveItemBehaviour,
         UseWith,
         Value,
     }
@@ -63,9 +63,10 @@ namespace CSC.Nodestuff
         ItemInteraction,
         Quest,
         Response,
-        StoryItem,
+        InteractiveItemBehaviour,
         UseWith,
-        Value
+        Value,
+        ItemGroupBehaviour
     }
 
     public sealed class MissingReferenceInfo
@@ -371,7 +372,7 @@ namespace CSC.Nodestuff
                     return "Pose " + EEnum.Parse<Poses>(ID);
                 }
                 case NodeType.Inventory:
-                case NodeType.StoryItem:
+                case NodeType.InteractiveItemBehaviour:
                 case NodeType.ItemInteraction:
                 case NodeType.Property:
                 case NodeType.Social:

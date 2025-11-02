@@ -1386,7 +1386,7 @@ namespace CSC.Nodestuff
                         }
                         case CompareTypes.Item:
                         {
-                            result = StoryItems.Find((n) => n.Type == NodeType.StoryItem && n.ID == criterion.Key);
+                            result = StoryItems.Find((n) => n.Type == NodeType.InteractiveItemBehaviour && n.ID == criterion.Key);
                             if (result is not null)
                             {
                                 if (dupeTo)
@@ -1400,7 +1400,7 @@ namespace CSC.Nodestuff
                             else if (dupeTo)
                             {
                                 //create and add item node, hasnt been referenced yet
-                                var item = new Node(criterion.Key!, NodeType.StoryItem, criterion.Key!, Main.SelectedCharacter)
+                                var item = new Node(criterion.Key!, NodeType.InteractiveItemBehaviour, criterion.Key!, Main.SelectedCharacter)
                                 {
                                     RawData = criterion.Key!,
                                 };
@@ -1411,7 +1411,7 @@ namespace CSC.Nodestuff
                         }
                         case CompareTypes.IsCurrentlyBeingUsed:
                         {
-                            result = StoryItems.Find((n) => n.Type == NodeType.StoryItem && n.ID == criterion.Key);
+                            result = StoryItems.Find((n) => n.Type == NodeType.InteractiveItemBehaviour && n.ID == criterion.Key);
                             if (result is not null)
                             {
                                 if (dupeTo)
@@ -1425,7 +1425,7 @@ namespace CSC.Nodestuff
                             else if (dupeTo)
                             {
                                 //create and add item node, hasnt been referenced yet
-                                var item = new Node(criterion.Key!, NodeType.StoryItem, criterion.Key!, Main.SelectedCharacter)
+                                var item = new Node(criterion.Key!, NodeType.InteractiveItemBehaviour, criterion.Key!, Main.SelectedCharacter)
                                 {
                                     RawData = criterion.Key!,
                                 };
@@ -1436,7 +1436,7 @@ namespace CSC.Nodestuff
                         }
                         case CompareTypes.IsCurrentlyUsing:
                         {
-                            result = StoryItems.Find((n) => n.Type == NodeType.StoryItem && n.ID == criterion.Key);
+                            result = StoryItems.Find((n) => n.Type == NodeType.InteractiveItemBehaviour && n.ID == criterion.Key);
                             if (result is not null)
                             {
                                 if (dupeTo)
@@ -1450,7 +1450,7 @@ namespace CSC.Nodestuff
                             else if (dupeTo)
                             {
                                 //create and add item node, hasnt been referenced yet
-                                var item = new Node(criterion.Key!, NodeType.StoryItem, criterion.Key!, Main.SelectedCharacter)
+                                var item = new Node(criterion.Key!, NodeType.InteractiveItemBehaviour, criterion.Key!, Main.SelectedCharacter)
                                 {
                                     RawData = criterion.Key!,
                                 };
@@ -1528,7 +1528,7 @@ namespace CSC.Nodestuff
                                 nodes.AddParent(node, item);
                             }
                             //find normal item if it exists
-                            result = StoryItems.Find((n) => n.Type == NodeType.StoryItem && n.ID == criterion.Key);
+                            result = StoryItems.Find((n) => n.Type == NodeType.InteractiveItemBehaviour && n.ID == criterion.Key);
                             if (result is not null)
                             {
                                 if (dupeTo)
@@ -1853,7 +1853,7 @@ namespace CSC.Nodestuff
                         }
                         case GameEvents.Item:
                         {
-                            result = StoryItems.Find((n) => n.Type == NodeType.StoryItem && n.ID == gameEvent.Key);
+                            result = StoryItems.Find((n) => n.Type == NodeType.InteractiveItemBehaviour && n.ID == gameEvent.Key);
                             if (result is not null)
                             {
                                 if (dupeTo)
@@ -1866,7 +1866,7 @@ namespace CSC.Nodestuff
                             else if (dupeTo)
                             {
                                 //create and add item node, hasnt been referenced yet
-                                var item = new Node(gameEvent.Key!, NodeType.StoryItem, gameEvent.Key!, Main.SelectedCharacter)
+                                var item = new Node(gameEvent.Key!, NodeType.InteractiveItemBehaviour, gameEvent.Key!, Main.SelectedCharacter)
                                 {
                                     RawData = gameEvent.Key!,
                                 };
@@ -1988,7 +1988,7 @@ namespace CSC.Nodestuff
                                 nodes.AddParent(node, item);
                                 item.DupeToOtherSorting(node.FileName);
                             }
-                            result = StoryItems.Find((n) => n.Type == NodeType.StoryItem && n.ID == gameEvent.Value);
+                            result = StoryItems.Find((n) => n.Type == NodeType.InteractiveItemBehaviour && n.ID == gameEvent.Value);
                             if (result is not null)
                             {
                                 if (dupeTo)
@@ -2335,7 +2335,7 @@ namespace CSC.Nodestuff
 
                     break;
                 }
-                case NodeType.StoryItem when (itemOverride = node.Data<InteractiveitemBehaviour>()!) is not null:
+                case NodeType.InteractiveItemBehaviour when (itemOverride = node.Data<InteractiveitemBehaviour>()!) is not null:
                 {
                     foreach (var _action in itemOverride.ItemActions)
                     {
@@ -2352,7 +2352,7 @@ namespace CSC.Nodestuff
                 {
                     foreach (var item in itemGroup.ItemsInGroup)
                     {
-                        result = StoryItems.Find((n) => n.Type == NodeType.StoryItem && n.ID == item);
+                        result = StoryItems.Find((n) => n.Type == NodeType.InteractiveItemBehaviour && n.ID == item);
 
                         if (result is not null)
                         {
@@ -2366,7 +2366,7 @@ namespace CSC.Nodestuff
                         else if (dupeTo)
                         {
                             //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
-                            var newNode = new Node(item, NodeType.StoryItem, item, item, Main.SelectedCharacter);
+                            var newNode = new Node(item, NodeType.InteractiveItemBehaviour, item, item, Main.SelectedCharacter);
                             StoryItems.Add(newNode);
                             nodes.AddChild(node, newNode);
                         }
@@ -2445,7 +2445,7 @@ namespace CSC.Nodestuff
                         HandleEvent(nodes, node, searchIn, _event, dupeTo);
                     }
 
-                    result = StoryItems.Find((n) => n.Type == NodeType.StoryItem && n.ID == useWith.ItemName!);
+                    result = StoryItems.Find((n) => n.Type == NodeType.InteractiveItemBehaviour && n.ID == useWith.ItemName!);
                     if (result is not null)
                     {
                         if (dupeTo)
@@ -2458,13 +2458,13 @@ namespace CSC.Nodestuff
                     else if (dupeTo)
                     {
                         //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
-                        var newNode = new Node(useWith.ItemName ?? string.Empty, NodeType.StoryItem, useWith.ItemName ?? string.Empty, useWith.ItemName!, Main.SelectedCharacter);
+                        var newNode = new Node(useWith.ItemName ?? string.Empty, NodeType.InteractiveItemBehaviour, useWith.ItemName ?? string.Empty, useWith.ItemName!, Main.SelectedCharacter);
                         StoryItems.Add(newNode);
                         nodes.AddChild(node, newNode);
                     }
                     break;
                 }
-                case NodeType.StoryItem when (StoryItem = node.Data<string>()!) is not null:
+                case NodeType.InteractiveItemBehaviour when (StoryItem = node.Data<string>()!) is not null:
                 {
                     result = StoryItems.Find(n => n.ID == StoryItem);
                     if (result is not null)
@@ -2638,7 +2638,7 @@ namespace CSC.Nodestuff
                     }
                     if (result.Count > 1)
                     {
-                        Debugger.Break();
+                        //Debugger.Break();
                     }
 
                     foreach (var foundNode in result)
@@ -2648,6 +2648,7 @@ namespace CSC.Nodestuff
                             foundNode.DupeToOtherSorting(store);
                             stores[store].Replace(node, foundNode);
                             Main.ClearAllNodePos(node);
+                            break;
                         }
                     }
                 }

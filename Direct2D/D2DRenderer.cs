@@ -652,7 +652,7 @@ namespace CSC.Direct2D
                 NodeType.GameEvent => light ? eventNodeBrush.AsBrush() : darkeventNodeBrush.AsBrush(),
                 NodeType.EventTrigger => light ? eventTriggerNodeBrush.AsBrush() : darkeventTriggerNodeBrush.AsBrush(),
                 NodeType.Inventory => light ? inventoryNodeBrush.AsBrush() : darkinventoryNodeBrush.AsBrush(),
-                NodeType.StoryItem => light ? itemNodeBrush.AsBrush() : darkitemNodeBrush.AsBrush(),
+                NodeType.InteractiveItemBehaviour => light ? itemNodeBrush.AsBrush() : darkitemNodeBrush.AsBrush(),
                 NodeType.ItemGroup => light ? itemGroupNodeBrush.AsBrush() : darkitemGroupNodeBrush.AsBrush(),
                 NodeType.Personality => light ? personalityNodeBrush.AsBrush() : darkpersonalityNodeBrush.AsBrush(),
                 NodeType.Property => light ? propertyNodeBrush.AsBrush() : darkpropertyNodeBrush.AsBrush(),

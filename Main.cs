@@ -140,15 +140,15 @@ public partial class Main : Form
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
     //############ TODOS before first release:
-    //todo fix all missing node.texts
-    //todo add missing node types from proeprtyinspector, except for criteria and charactergroups and achievements
+    //todo fix up node click linking to be more sensible
+    //todo add indicator what a node accepts on linking
+    //todo add info when trying to link incompatible notes
     //########################################################
 
     //############ stuff to do after release
     //todo optimize memory footprint of search
     //todo add story node cache on disk
     //todo add story search tree cache on disk
-    //todo add info when trying to link incompatible notes
     //########################################################
 
     //############ whatever
@@ -405,6 +405,7 @@ public partial class Main : Form
 
     private object[] GetSpawnableNodeTypes()
     {
+        //todo this needs much cleanup
         if (SelectedCharacter == Player)
         {
             if (SelectedNode != Node.NullNode)
@@ -415,7 +416,7 @@ public partial class Main : Form
                     //response dialogue bgc item itemgroup
                     case NodeType.Criterion:
                     {
-                        return [NodeType.ItemAction, NodeType.UseWith, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.StoryItem, NodeType.ItemGroup, NodeType.Value];
+                        return [NodeType.ItemAction, NodeType.UseWith, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.ItemGroupBehaviour, NodeType.Value];
                     }
 
                     //item and event and criterion
@@ -424,11 +425,11 @@ public partial class Main : Form
                     case NodeType.ItemGroupBehaviour:
                     case NodeType.ItemGroupInteraction:
                     case NodeType.Inventory:
-                    case NodeType.StoryItem:
+                    case NodeType.InteractiveItemBehaviour:
                     case NodeType.ItemGroup:
                     case NodeType.UseWith:
                     {
-                        return [NodeType.StoryItem, NodeType.GameEvent, NodeType.Criterion];
+                        return [NodeType.InteractiveItemBehaviour, NodeType.GameEvent, NodeType.Criterion, NodeType.ItemGroupBehaviour];
                     }
 
                     //event
@@ -462,13 +463,13 @@ public partial class Main : Form
                     case NodeType.GameEvent:
                     default:
                     {
-                        return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.StoryItem, NodeType.ItemGroup, NodeType.Quest, NodeType.UseWith, NodeType.Value];
+                        return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.ItemGroupBehaviour, NodeType.Quest, NodeType.UseWith, NodeType.Value];
                     }
                 }
             }
             else
             {
-                return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.StoryItem, NodeType.ItemGroup, NodeType.Quest, NodeType.UseWith, NodeType.Value];
+                return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.ItemGroupBehaviour, NodeType.Quest, NodeType.UseWith, NodeType.Value];
             }
         }
         else
@@ -481,7 +482,7 @@ public partial class Main : Form
                     //response dialogue bgc item itemgroup
                     case NodeType.Criterion:
                     {
-                        return [NodeType.ItemAction, NodeType.UseWith, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.AlternateText, NodeType.Response, NodeType.Dialogue, NodeType.BGC, NodeType.StoryItem, NodeType.ItemGroup, NodeType.Value];
+                        return [NodeType.ItemAction, NodeType.UseWith, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.AlternateText, NodeType.Response, NodeType.Dialogue, NodeType.BGC, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.Value];
                     }
 
                     //item and event and criterion
@@ -490,11 +491,11 @@ public partial class Main : Form
                     case NodeType.ItemGroupBehaviour:
                     case NodeType.ItemGroupInteraction:
                     case NodeType.Inventory:
-                    case NodeType.StoryItem:
+                    case NodeType.InteractiveItemBehaviour:
                     case NodeType.ItemGroup:
                     case NodeType.UseWith:
                     {
-                        return [NodeType.StoryItem, NodeType.GameEvent, NodeType.Criterion];
+                        return [NodeType.InteractiveItemBehaviour, NodeType.GameEvent, NodeType.Criterion];
                     }
 
                     //event
@@ -551,13 +552,13 @@ public partial class Main : Form
                     case NodeType.GameEvent:
                     default:
                     {
-                        return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.BGC, NodeType.BGCResponse, NodeType.CriteriaGroup, NodeType.Dialogue, NodeType.AlternateText, NodeType.GameEvent, NodeType.EventTrigger, NodeType.StoryItem, NodeType.ItemGroup, NodeType.Quest, NodeType.UseWith, NodeType.Response, NodeType.Value];
+                        return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.BGC, NodeType.BGCResponse, NodeType.CriteriaGroup, NodeType.Dialogue, NodeType.AlternateText, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.Quest, NodeType.UseWith, NodeType.Response, NodeType.Value];
                     }
                 }
             }
             else
             {
-                return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.BGC, NodeType.BGCResponse, NodeType.CriteriaGroup, NodeType.Dialogue, NodeType.AlternateText, NodeType.GameEvent, NodeType.EventTrigger, NodeType.StoryItem, NodeType.ItemGroup, NodeType.Quest, NodeType.UseWith, NodeType.Response, NodeType.Value];
+                return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.BGC, NodeType.BGCResponse, NodeType.CriteriaGroup, NodeType.Dialogue, NodeType.AlternateText, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.Quest, NodeType.UseWith, NodeType.Response, NodeType.Value];
             }
         }
     }
@@ -4348,27 +4349,199 @@ public partial class Main : Form
                 }
                 break;
             }
-            //todo do the following propetyinspectors
-            case NodeType.StoryItem:
+            case NodeType.InteractiveItemBehaviour:
+            {
+                var item = node.Data<InteractiveitemBehaviour>();
+                if (item is not null)
+                {
+                    PropertyInspector.ColumnCount = 6;
+                    PropertyInspector.RowCount = 1;
+
+                    Label label = GetLabel("Real Item name:");
+                    PropertyInspector.Controls.Add(label);
+
+                    var items = GetComboBox();
+                    items.Items.AddRange(Enum.GetNames<Items>());
+                    items.Items.AddRange(Enum.GetNames<Characters>());
+                    if (!items.Items.Contains(item.ItemName))
+                    {
+                        item.ItemName = items.Items[0]!.ToString()!;
+                    }
+                    items.SelectedItem = item.ItemName.Enumize();
+                    items.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => item.ItemName = items.SelectedItem!.ToString()!);
+                    PropertyInspector.Controls.Add(items);
+
+                    label = GetLabel("Display name:");
+                    PropertyInspector.Controls.Add(label);
+
+                    TextBox obj2 = new()
+                    {
+                        TextAlign = HorizontalAlignment.Center,
+                        ForeColor = Color.LightGray,
+                        Text = item.DisplayName,
+                        AutoSize = false,
+                        Width = 300
+                    };
+                    obj2.TextChanged += (_, args) => item.DisplayName = obj2.Text;
+                    PropertyInspector.Controls.Add(obj2);
+
+                    var check = GetCheckbox("Use default radial options", item.UseDefaultRadialOptions);
+                    check.CheckedChanged += (_, _) =>
+                    {
+                        item.UseDefaultRadialOptions = check.Checked;
+                    };
+                    PropertyInspector.Controls.Add(check);
+                }
+                else
+                {
+                    Label label2 = GetLabel("No data on this node!", ContentAlignment.TopCenter);
+                    PropertyInspector.Controls.Add(label2);
+                }
+                break;
+            }
+            case NodeType.UseWith:
+            {
+                Label label = GetLabel("Custom use with fail message");
+                PropertyInspector.Controls.Add(label);
+
+                if (node.Data<UseWith>() is not null)
+                {
+                    TextBox obj2 = new()
+                    {
+                        TextAlign = HorizontalAlignment.Center,
+                        ForeColor = Color.LightGray,
+                        Text = node.Data<UseWith>()!.CustomCantDoThatMessage,
+                        AutoSize = false,
+                        Multiline = true,
+                        ScrollBars = ScrollBars.Both,
+                        Height = 80,
+                        Width = 300
+                    };
+                    obj2.TextChanged += (_, args) => node.Data<UseWith>()!.CustomCantDoThatMessage = obj2.Text;
+                    PropertyInspector.Controls.Add(obj2);
+                }
+                else
+                {
+                    Label label2 = GetLabel("No data on this node!", ContentAlignment.TopCenter);
+                    PropertyInspector.Controls.Add(label2);
+                }
+                break;
+            }
             case NodeType.ItemAction:
+            {
+                Label label = GetLabel("Action name");
+                PropertyInspector.Controls.Add(label);
+
+                if (node.Data<ItemAction>() is not null)
+                {
+                    TextBox obj2 = new()
+                    {
+                        TextAlign = HorizontalAlignment.Center,
+                        ForeColor = Color.LightGray,
+                        Text = node.Data<ItemAction>()!.ActionName,
+                        AutoSize = false,
+                        Width = 300
+                    };
+                    obj2.TextChanged += (_, args) => node.Data<ItemAction>()!.ActionName = obj2.Text;
+                    PropertyInspector.Controls.Add(obj2);
+                }
+                else
+                {
+                    Label label2 = GetLabel("No data on this node!", ContentAlignment.TopCenter);
+                    PropertyInspector.Controls.Add(label2);
+                }
+                break;
+            }
             case NodeType.ItemGroup:
-            case NodeType.ItemGroupBehaviour:
-            case NodeType.ItemGroupInteraction:
+            {
+                Label label = GetLabel("Item group name");
+                PropertyInspector.Controls.Add(label);
+
+                if (node.Data<ItemGroup>() is not null)
+                {
+                    TextBox obj2 = new()
+                    {
+                        TextAlign = HorizontalAlignment.Center,
+                        ForeColor = Color.LightGray,
+                        Text = node.Data<ItemGroup>()!.Name,
+                        AutoSize = false,
+                        Width = 300
+                    };
+                    obj2.TextChanged += (_, args) => node.Data<ItemGroup>()!.Name = obj2.Text;
+                    PropertyInspector.Controls.Add(obj2);
+                }
+                else
+                {
+                    Label label2 = GetLabel("No data on this node!", ContentAlignment.TopCenter);
+                    PropertyInspector.Controls.Add(label2);
+                }
+                break;
+            }
             case NodeType.BGCResponse:
+            {
+                var response = node.Data<BackgroundChatterResponse>();
+                if (response is not null)
+                {
+                    ComboBox character = GetComboBox();
+                    character.Items.AddRange(Enum.GetNames<Characters>());
+                    character.SelectedItem = response.CharacterName!;
+                    character.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => response.CharacterName = character.SelectedItem.ToString()!);
+                    PropertyInspector.Controls.Add(character);
+
+                    if (response.CharacterName == Player)
+                    {
+                        response.CharacterName = "Amy";
+                    }
+
+                    if (!Stories.ContainsKey(response.CharacterName))
+                    {
+                        response.CharacterName = Stories.First().Key;
+                    }
+                    if (Stories[response.CharacterName].BackgroundChatter.Count > 0)
+                    {
+                        var box = GetComboBox();
+                        foreach (var item in Stories[response.CharacterName].BackgroundChatter)
+                        {
+                            box.Items.Add(item.Id);
+                        }
+
+                        box.SelectedItem = response.ChatterId;
+                        box.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => response.ChatterId = int.Parse(box.SelectedItem.ToString() ?? "0"));
+
+                        var chatter = GetLabel(Stories[response.CharacterName].BackgroundChatter[int.Parse(box.SelectedItem?.ToString() ?? "0")].Text);
+                        PropertyInspector.Controls.Add(chatter);
+                    }
+                    else
+                    {
+                        var noChatter = GetLabel("no background chatter");
+                        PropertyInspector.Controls.Add(noChatter);
+                    }
+                }
+                else
+                {
+                    Label label2 = GetLabel("No data on this node!", ContentAlignment.TopCenter);
+                    PropertyInspector.Controls.Add(label2);
+                }
+
+                break;
+            }
             //these arent necessary for simple stories
             case NodeType.CharacterGroup:
             case NodeType.CriteriaGroup:
             case NodeType.Achievement:
             //dont need these:
-            case NodeType.State:
-            case NodeType.Property:
-            case NodeType.Social:
-            case NodeType.Clothing:
-            case NodeType.Cutscene:
-            case NodeType.Door:
-            case NodeType.Inventory:
-            case NodeType.Null:
-            case NodeType.Pose:
+            case NodeType.ItemGroupBehaviour: //this one has no data on itself, only criteria and events
+            case NodeType.ItemGroupInteraction: //this one has no data on itself, only criteria and events
+            case NodeType.ItemInteraction: //this one has no data on itself, only criteria and events
+            case NodeType.State: //generated
+            case NodeType.Property: //generated
+            case NodeType.Social: //generated
+            case NodeType.Clothing: //generated
+            case NodeType.Cutscene: //generated
+            case NodeType.Door: //generated
+            case NodeType.Inventory: //generated
+            case NodeType.Null: //null duhh
+            case NodeType.Pose: //generated
             default:
             {
                 PropertyInspector.RowCount = 1;
@@ -5170,6 +5343,7 @@ public partial class Main : Form
                 {
                     RawData = new Achievement() { Id = guid },
                 };
+                Story.Achievements.Add((Achievement)newNode.RawData);
                 nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)
@@ -5184,6 +5358,7 @@ public partial class Main : Form
                 {
                     RawData = new BackgroundChatter() { Id = Stories[character].BackgroundChatter!.Count + 1 },
                 };
+                Stories[character].BackgroundChatter!.Add((BackgroundChatter)newNode.RawData);
                 nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)
@@ -5213,6 +5388,7 @@ public partial class Main : Form
                 {
                     RawData = new CriteriaGroup() { Name = id },
                 };
+                Story.CriteriaGroups.Add((CriteriaGroup)newNode.RawData);
                 nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)
@@ -5275,6 +5451,30 @@ public partial class Main : Form
                 {
                     RawData = new EventTrigger() { Id = id },
                 };
+                if(character == Player)
+                {
+                    Story.PlayerReactions.Add((EventTrigger)newNode.RawData);
+                }
+                else
+                {
+                    Stories[character].Reactions!.Add((EventTrigger)newNode.RawData);
+                }
+                    nodes[character].Add(newNode);
+
+                if (SelectedNode != Node.NullNode)
+                {
+                    NodeLinker.Link(nodes[SelectedCharacter], SelectedNode, newNode);
+                }
+                break;
+            }
+            case SpawnableNodeType.InteractiveItemBehaviour:
+            {
+                string id = "item name";
+                newNode = new Node(id, NodeType.InteractiveItemBehaviour, string.Empty, nodes[character].Positions, character)
+                {
+                    RawData = new InteractiveitemBehaviour() { ItemName = id },
+                };
+                Story.ItemOverrides.Add((InteractiveitemBehaviour)newNode.RawData);
                 nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)
@@ -5283,13 +5483,14 @@ public partial class Main : Form
                 }
                 break;
             }
-            case SpawnableNodeType.StoryItem:
+            case SpawnableNodeType.ItemGroupBehaviour:
             {
-                string id = "item name";
-                newNode = new Node(id, NodeType.StoryItem, string.Empty, nodes[character].Positions, character)
+                string id = "group name";
+                newNode = new Node(id, NodeType.ItemGroupBehaviour, string.Empty, nodes[character].Positions, character)
                 {
-                    RawData = new InteractiveitemBehaviour() { ItemName = id },
+                    RawData = new ItemGroupBehavior() { GroupName = id },
                 };
+                Story.ItemGroupBehaviors.Add((ItemGroupBehavior)newNode.RawData);
                 nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)
@@ -5305,6 +5506,7 @@ public partial class Main : Form
                 {
                     RawData = new ItemInteraction() { ItemName = id },
                 };
+                Stories[character].StoryItems!.Add((ItemInteraction)newNode.RawData);
                 nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)
@@ -5320,6 +5522,7 @@ public partial class Main : Form
                 {
                     RawData = new ItemGroupInteraction() { Name = id },
                 };
+                Stories[character].CharacterItemGroupInteractions!.Add((ItemGroupInteraction)newNode.RawData);
                 nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)
@@ -5335,6 +5538,7 @@ public partial class Main : Form
                 {
                     RawData = new ItemGroup() { Id = id },
                 };
+                Story.ItemGroups.Add((ItemGroup)newNode.RawData);
                 nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)

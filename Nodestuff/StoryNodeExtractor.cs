@@ -203,7 +203,7 @@ namespace CSC.Nodestuff
                 foreach (string item in itemGroup.ItemsInGroup ?? [])
                 {
                     //node to addevents to
-                    var nodeItem = new Node(item ?? string.Empty, NodeType.StoryItem, item ?? string.Empty, Main.Player) { RawData = item };
+                    var nodeItem = new Node(item ?? string.Empty, NodeType.InteractiveItemBehaviour, item ?? string.Empty, Main.Player) { RawData = item };
 
                     //add item to item group
                     nodes.AddChild(nodeGroup, nodeItem);
@@ -217,7 +217,7 @@ namespace CSC.Nodestuff
             foreach (InteractiveitemBehaviour itemOverride in story.ItemOverrides ?? [])
             {
                 //add items to list
-                var nodeItem = new Node(itemOverride.Id ?? string.Empty, NodeType.StoryItem, itemOverride.DisplayName ?? string.Empty, Main.Player) { RawData = itemOverride };
+                var nodeItem = new Node(itemOverride.Id ?? string.Empty, NodeType.InteractiveItemBehaviour, itemOverride.DisplayName ?? string.Empty, Main.Player) { RawData = itemOverride };
 
                 //add item with all child Main.nodes to collector list
                 nodes.Add(nodeItem);
