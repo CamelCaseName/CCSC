@@ -6,6 +6,7 @@ using CSC.Search;
 using CSC.StoryItems;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Numerics;
@@ -405,160 +406,120 @@ public partial class Main : Form
 
     private object[] GetSpawnableNodeTypes()
     {
-        //todo this needs much cleanup
+        if (SelectedNode != Node.NullNode)
+        {
+            return [.. GetLinkableNodeTypes(SelectedNode.Type)];
+        }
+        else
+        {
+            return [.. GetLinkableNodeTypes(NodeType.Null)];
+        }
+    }
+
+    private static SpawnableNodeType[] GetLinkableNodeTypes(NodeType input)
+    {
+        //constructed as the inverse of AllLink()
         if (SelectedCharacter == Player)
         {
-            if (SelectedNode != Node.NullNode)
+            //main story link options are different than characterstory
+            switch (input)
             {
-                switch (SelectedNode.Type)
+                case NodeType.Criterion:
                 {
-                    //itemaction uswith criterialist event eventtrigger alternatetext
-                    //response dialogue bgc item itemgroup
-                    case NodeType.Criterion:
-                    {
-                        return [NodeType.ItemAction, NodeType.UseWith, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.ItemGroupBehaviour, NodeType.Value];
-                    }
-
-                    //item and event and criterion
-                    case NodeType.ItemAction:
-                    case NodeType.ItemInteraction:
-                    case NodeType.ItemGroupBehaviour:
-                    case NodeType.ItemGroupInteraction:
-                    case NodeType.Inventory:
-                    case NodeType.InteractiveItemBehaviour:
-                    case NodeType.ItemGroup:
-                    case NodeType.UseWith:
-                    {
-                        return [NodeType.InteractiveItemBehaviour, NodeType.GameEvent, NodeType.Criterion, NodeType.ItemGroupBehaviour];
-                    }
-
-                    //event
-                    case NodeType.Pose:
-                    case NodeType.Achievement:
-                    {
-                        return [NodeType.GameEvent];
-                    }
-                    case NodeType.Value:
-                    {
-                        return [NodeType.GameEvent, NodeType.Criterion, NodeType.Value];
-                    }
-                    //event criterion
-                    case NodeType.CharacterGroup:
-                    case NodeType.EventTrigger:
-                    case NodeType.Clothing:
-                    case NodeType.Personality:
-                    case NodeType.Social:
-                    case NodeType.State:
-                    case NodeType.Property:
-                    case NodeType.Cutscene:
-                    case NodeType.Door:
-                    case NodeType.CriteriaGroup:
-                    {
-                        return [NodeType.GameEvent, NodeType.Criterion];
-                    }
-                    case NodeType.Quest:
-                    {
-                        return [NodeType.GameEvent, NodeType.Criterion];
-                    }
-                    case NodeType.GameEvent:
-                    default:
-                    {
-                        return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.ItemGroupBehaviour, NodeType.Quest, NodeType.UseWith, NodeType.Value];
-                    }
+                    return [SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.CriteriaGroup, SpawnableNodeType.GameEvent, SpawnableNodeType.EventTrigger, SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.ItemGroup, SpawnableNodeType.Value];
                 }
-            }
-            else
-            {
-                return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.ItemGroupBehaviour, NodeType.Quest, NodeType.UseWith, NodeType.Value];
+                case NodeType.ItemAction:
+                case NodeType.UseWith:
+                {
+                    return [SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent];
+                }
+                case NodeType.InteractiveItemBehaviour:
+                {
+                    return [SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent, SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.ItemGroup];
+                }
+                case NodeType.ItemGroupBehaviour:
+                {
+                    return [SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent, SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith];
+                }
+                case NodeType.CriteriaGroup:
+                {
+                    return [SpawnableNodeType.CriteriaGroup, SpawnableNodeType.Criterion];
+                }
+                case NodeType.ItemGroup:
+                {
+                    return [SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent];
+                }
+                case NodeType.Value:
+                {
+                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion, SpawnableNodeType.Value];
+                }
+                case NodeType.EventTrigger:
+                {
+                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion];
+                }
+                case NodeType.GameEvent:
+                {
+                    return [SpawnableNodeType.Criterion, SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.EventTrigger, SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.ItemGroup, SpawnableNodeType.Value];
+                }
+                default:
+                {
+                    return [SpawnableNodeType.Criterion, SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.EventTrigger, SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.ItemGroup, SpawnableNodeType.Value, SpawnableNodeType.CriteriaGroup];
+                }
             }
         }
         else
         {
-            if (SelectedNode != Node.NullNode)
+            //has more than main story as the interactions are added
+            switch (input)
             {
-                switch (SelectedNode.Type)
+                case NodeType.Criterion:
                 {
-                    //itemaction uswith criterialist event eventtrigger alternatetext
-                    //response dialogue bgc item itemgroup
-                    case NodeType.Criterion:
-                    {
-                        return [NodeType.ItemAction, NodeType.UseWith, NodeType.CriteriaGroup, NodeType.GameEvent, NodeType.EventTrigger, NodeType.AlternateText, NodeType.Response, NodeType.Dialogue, NodeType.BGC, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.Value];
-                    }
-
-                    //item and event and criterion
-                    case NodeType.ItemAction:
-                    case NodeType.ItemInteraction:
-                    case NodeType.ItemGroupBehaviour:
-                    case NodeType.ItemGroupInteraction:
-                    case NodeType.Inventory:
-                    case NodeType.InteractiveItemBehaviour:
-                    case NodeType.ItemGroup:
-                    case NodeType.UseWith:
-                    {
-                        return [NodeType.InteractiveItemBehaviour, NodeType.GameEvent, NodeType.Criterion];
-                    }
-
-                    //event
-                    case NodeType.Pose:
-                    case NodeType.Achievement:
-                    {
-                        return [NodeType.GameEvent];
-                    }
-
-                    //event bgcresponse
-                    case NodeType.BGC:
-                    {
-                        return [NodeType.BGCResponse, NodeType.GameEvent, NodeType.Criterion];
-                    }
-
-                    //bgc
-                    case NodeType.BGCResponse:
-                    {
-                        return [NodeType.BGC];
-                    }
-                    //criteria dialogue
-                    case NodeType.Response:
-                    {
-                        return [NodeType.Dialogue, NodeType.GameEvent, NodeType.Criterion];
-                    }
-
-                    case NodeType.Dialogue:
-                    {
-                        return [NodeType.GameEvent, NodeType.Criterion, NodeType.Response];
-                    }
-                    case NodeType.Value:
-                    {
-                        return [NodeType.GameEvent, NodeType.Criterion, NodeType.Value];
-                    }
-                    case NodeType.Quest:
-                    {
-                        return [NodeType.GameEvent, NodeType.Criterion, NodeType.Quest];
-                    }
-                    //event criterion
-                    case NodeType.CharacterGroup:
-                    case NodeType.AlternateText:
-                    case NodeType.EventTrigger:
-                    case NodeType.Clothing:
-                    case NodeType.Personality:
-                    case NodeType.Social:
-                    case NodeType.State:
-                    case NodeType.Property:
-                    case NodeType.Cutscene:
-                    case NodeType.Door:
-                    case NodeType.CriteriaGroup:
-                    {
-                        return [NodeType.GameEvent, NodeType.Criterion];
-                    }
-                    case NodeType.GameEvent:
-                    default:
-                    {
-                        return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.BGC, NodeType.BGCResponse, NodeType.CriteriaGroup, NodeType.Dialogue, NodeType.AlternateText, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.Quest, NodeType.UseWith, NodeType.Response, NodeType.Value];
-                    }
+                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.EventTrigger, SpawnableNodeType.AlternateText, SpawnableNodeType.Response, SpawnableNodeType.BGC, SpawnableNodeType.ItemInteraction, SpawnableNodeType.ItemGroupInteraction, SpawnableNodeType.Quest, SpawnableNodeType.Value];
                 }
-            }
-            else
-            {
-                return [NodeType.Criterion, NodeType.ItemAction, NodeType.Achievement, NodeType.BGC, NodeType.BGCResponse, NodeType.CriteriaGroup, NodeType.Dialogue, NodeType.AlternateText, NodeType.GameEvent, NodeType.EventTrigger, NodeType.InteractiveItemBehaviour, NodeType.ItemGroup, NodeType.Quest, NodeType.UseWith, NodeType.Response, NodeType.Value];
+                case NodeType.AlternateText:
+                {
+                    return [SpawnableNodeType.Criterion, SpawnableNodeType.Dialogue];
+                }
+                case NodeType.Response:
+                {
+                    return [SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent, SpawnableNodeType.Dialogue];
+                }
+                case NodeType.Dialogue:
+                {
+                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Response, SpawnableNodeType.AlternateText];
+                }
+                case NodeType.BGC:
+                {
+                    return [SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent, SpawnableNodeType.BGCResponse];
+                }
+                case NodeType.BGCResponse:
+                {
+                    return [SpawnableNodeType.BGC];
+                }
+                case NodeType.Value:
+                {
+                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion, SpawnableNodeType.Value];
+                }
+                case NodeType.Quest:
+                {
+                    return [SpawnableNodeType.Quest, SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion];
+                }
+                case NodeType.ItemInteraction:
+                case NodeType.ItemGroupInteraction:
+                case NodeType.Personality:
+                case NodeType.EventTrigger:
+                case NodeType.State:
+                {
+                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion];
+                }
+                case NodeType.GameEvent:
+                {
+                    return [SpawnableNodeType.Criterion, SpawnableNodeType.EventTrigger, SpawnableNodeType.Value, SpawnableNodeType.Response, SpawnableNodeType.Dialogue, SpawnableNodeType.BGC, SpawnableNodeType.ItemInteraction, SpawnableNodeType.ItemGroupInteraction, SpawnableNodeType.Quest];
+                }
+                default:
+                {
+                    return [SpawnableNodeType.Criterion,SpawnableNodeType.EventTrigger, SpawnableNodeType.Value];
+                }
             }
         }
     }
@@ -5451,7 +5412,7 @@ public partial class Main : Form
                 {
                     RawData = new EventTrigger() { Id = id },
                 };
-                if(character == Player)
+                if (character == Player)
                 {
                     Story.PlayerReactions.Add((EventTrigger)newNode.RawData);
                 }
@@ -5459,7 +5420,7 @@ public partial class Main : Form
                 {
                     Stories[character].Reactions!.Add((EventTrigger)newNode.RawData);
                 }
-                    nodes[character].Add(newNode);
+                nodes[character].Add(newNode);
 
                 if (SelectedNode != Node.NullNode)
                 {
