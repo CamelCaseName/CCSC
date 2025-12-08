@@ -141,6 +141,7 @@ public partial class Main : Form
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
     //############ TODOS before first release:
+    //todo fix gameevents not having same values after one guid fix
     //todo fix up node click linking to be more sensible
     //todo add indicator what a node accepts on linking
     //todo add info when trying to link incompatible notes
@@ -1051,6 +1052,11 @@ public partial class Main : Form
         {
             foreach (var key in nodes[SelectedCharacter].Positions[mouseGraphLocation])
             {
+                if (Main.HiddenTypes.Contains(key.Type) || (Main.HideDuped && key.FileName != Main.SelectedCharacter))
+                {
+                    continue;
+                }
+
                 if (key.Rectangle.Contains(mouseGraphLocation))
                 {
                     return key;
@@ -1067,6 +1073,11 @@ public partial class Main : Form
             List<Node> results = [];
             foreach (var key in nodes[SelectedCharacter].Positions[mouseGraphLocation])
             {
+                if (Main.HiddenTypes.Contains(key.Type) || (Main.HideDuped && key.FileName != Main.SelectedCharacter))
+                {
+                    continue;
+                }
+
                 if (key.Rectangle.Contains(mouseGraphLocation))
                 {
                     results.Add(key);

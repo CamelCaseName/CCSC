@@ -30,6 +30,9 @@
         {
             typelist = new CheckedListBox();
             HideImported = new CheckBox();
+            setAll = new Button();
+            dialogueOnly = new Button();
+            clearAll = new Button();
             SuspendLayout();
             // 
             // typelist
@@ -39,9 +42,9 @@
             typelist.BorderStyle = BorderStyle.None;
             typelist.ForeColor = Color.Silver;
             typelist.FormattingEnabled = true;
-            typelist.Location = new Point(0, 0);
+            typelist.Location = new Point(0, 36);
             typelist.Name = "typelist";
-            typelist.Size = new Size(334, 288);
+            typelist.Size = new Size(334, 252);
             typelist.TabIndex = 0;
             typelist.ItemCheck += TypeListCheckedChanged;
             // 
@@ -58,12 +61,45 @@
             HideImported.UseVisualStyleBackColor = true;
             HideImported.CheckedChanged += HideImported_CheckedChanged;
             // 
+            // setAll
+            // 
+            setAll.Location = new Point(12, 7);
+            setAll.Name = "setAll";
+            setAll.Size = new Size(75, 23);
+            setAll.TabIndex = 2;
+            setAll.Text = "Set all";
+            setAll.UseVisualStyleBackColor = true;
+            setAll.Click += SetAll_Click;
+            // 
+            // dialogueOnly
+            // 
+            dialogueOnly.Location = new Point(93, 7);
+            dialogueOnly.Name = "dialogueOnly";
+            dialogueOnly.Size = new Size(75, 23);
+            dialogueOnly.TabIndex = 3;
+            dialogueOnly.Text = "Dialogue only";
+            dialogueOnly.UseVisualStyleBackColor = true;
+            dialogueOnly.Click += DialogueOnly_Click;
+            // 
+            // clearAll
+            // 
+            clearAll.Location = new Point(174, 7);
+            clearAll.Name = "clearAll";
+            clearAll.Size = new Size(75, 23);
+            clearAll.TabIndex = 4;
+            clearAll.Text = "Clear all";
+            clearAll.UseVisualStyleBackColor = true;
+            clearAll.Click += ClearAll_Click;
+            // 
             // NodeGraphFilter
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(40, 40, 40);
             ClientSize = new Size(334, 311);
+            Controls.Add(clearAll);
+            Controls.Add(dialogueOnly);
+            Controls.Add(setAll);
             Controls.Add(HideImported);
             Controls.Add(typelist);
             MinimumSize = new Size(350, 155);
@@ -78,5 +114,8 @@
 
         private CheckedListBox typelist;
         private CheckBox HideImported;
+        private Button setAll;
+        private Button dialogueOnly;
+        private Button clearAll;
     }
 }

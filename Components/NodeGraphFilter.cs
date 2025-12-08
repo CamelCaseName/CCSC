@@ -5,6 +5,7 @@ namespace CSC.Components
     public partial class NodeGraphFilter : Form
     {
         static public readonly NodeGraphFilter Instance = new();
+        private bool forceUpdate = true;
 
         public NodeGraphFilter()
         {
@@ -36,13 +37,57 @@ namespace CSC.Components
                 Main.HiddenTypes.Remove(Enum.Parse<NodeType>((string)typelist.Items[e.Index]));
             }
 
-            Main.ForceRedrawGraph();
+            if (forceUpdate)
+            {
+                Main.ForceRedrawGraph();
+            }
         }
 
         private void HideImported_CheckedChanged(object sender, EventArgs e)
         {
             Main.HideDuped = !Main.HideDuped;
 
+            Main.ForceRedrawGraph();
+        }
+
+        private void SetAll_Click(object sender, EventArgs e)
+        {
+            forceUpdate = false;
+            for (int i = 0; i < Enum.GetValues<NodeType>().Length; i++)
+            {
+                typelist.SetItemChecked(i, true);
+            }
+            forceUpdate = true;
+            Main.ForceRedrawGraph();
+        }
+
+        private void DialogueOnly_Click(object sender, EventArgs e)
+        {
+            forceUpdate = false;
+            NodeType[] values = Enum.GetValues<NodeType>();
+            for (int i = 0; i < values.Length; i++)
+            {
+                if (values[i] is NodeType.AlternateText or NodeType.Criterion or NodeType.Dialogue or NodeType.EventTrigger or NodeType.Response)
+                {
+                    typelist.SetItemChecked(i, false);
+                }
+                else
+                {
+                    typelist.SetItemChecked(i, true);
+                }
+            }
+            forceUpdate = true;
+            Main.ForceRedrawGraph();
+        }
+
+        private void ClearAll_Click(object sender, EventArgs e)
+        {
+            forceUpdate = false;
+            for (int i = 0; i < Enum.GetValues<NodeType>().Length; i++)
+            {
+                typelist.SetItemChecked(i, false);
+            }
+            forceUpdate = true;
             Main.ForceRedrawGraph();
         }
     }

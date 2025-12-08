@@ -551,16 +551,6 @@ namespace CSC.Direct2D
                 return;
             }
 
-            //draw circles?
-            if (currentScale > 0.28f)
-            {
-                Main.GetLinkCircleRects(node, out RectangleF rightRect);
-
-                Ellipse right = rightRect.ToEllipse();
-
-                target.DrawEllipse(&right, circlePen.AsBrush(), circlePenWidth, defaultStyle);
-            }
-
             //Draw interlinked frame
             if (node.FileName != Main.SelectedCharacter)
             {
@@ -570,6 +560,16 @@ namespace CSC.Direct2D
                 }
                 var interRect = ScaleRect(node.Rectangle, 15).ToRoundedRect(15f);
                 DrawNodeRectImpl(ref interRect, InterlinkedNodeBrush.AsBrush());
+            }
+
+            //draw circles?
+            if (currentScale > 0.28f)
+            {
+                Main.GetLinkCircleRects(node, out RectangleF rightRect);
+
+                Ellipse right = rightRect.ToEllipse();
+
+                target.DrawEllipse(&right, circlePen.AsBrush(), circlePenWidth, defaultStyle);
             }
 
             var rect = node.RoundRectangle;

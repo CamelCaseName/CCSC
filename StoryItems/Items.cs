@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using static CSC.StoryItems.StoryEnums;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CSC.StoryItems
 {
