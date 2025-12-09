@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Media;
 using System.Numerics;
 using System.Text.Json;
 using static CSC.StoryItems.StoryEnums;
@@ -141,13 +142,14 @@ public partial class Main : Form
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
     //############ TODOS before first release:
-    //todo fix gameevents not having same values after one guid fix
-    //todo fix up node click linking to be more sensible
-    //todo add indicator what a node accepts on linking
-    //todo add info when trying to link incompatible notes
+    //todo update story things for nocturnal temptations
+    //todo fix some certain gameevents not having same values after one guid fix
     //########################################################
 
     //############ stuff to do after release
+    //todo fix broken propertyeditors, im sure there will be some
+    //todo fix up node click linking to be more sensible
+    //todo add indicator what node accepts linking
     //todo optimize memory footprint of search
     //todo add story node cache on disk
     //todo add story search tree cache on disk
@@ -159,6 +161,7 @@ public partial class Main : Form
     //todo add comments
     //todo add charactergroups
     //todo handle criteriagroups correctly
+    //todo update for Office Party in time
     //########################################################
 
     public Main()
@@ -519,7 +522,7 @@ public partial class Main : Form
                 }
                 default:
                 {
-                    return [SpawnableNodeType.Criterion,SpawnableNodeType.EventTrigger, SpawnableNodeType.Value];
+                    return [SpawnableNodeType.Criterion, SpawnableNodeType.EventTrigger, SpawnableNodeType.Value];
                 }
             }
         }
@@ -2112,7 +2115,10 @@ public partial class Main : Form
                 }
                 else
                 {
-                    NodeLinker.Link(nodes[SelectedCharacter], nodeToLinkFrom, node);
+                    if (!NodeLinker.Link(nodes[SelectedCharacter], nodeToLinkFrom, node))
+                    {
+                        SystemSounds.Exclamation.Play();
+                    }
                 }
 
                 nodeToLinkFrom = Node.NullNode;

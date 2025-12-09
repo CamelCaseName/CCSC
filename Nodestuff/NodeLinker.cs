@@ -1087,21 +1087,26 @@ namespace CSC.Nodestuff
             }
         }
 
-        public static void Link(NodeStore nodes, Node addFrom, Node addToThis)
+        public static bool Link(NodeStore nodes, Node addFrom, Node addToThis)
         {
             if (addToThis.DataType == typeof(MissingReferenceInfo))
             {
-                return;
+                return false;
             }
             if (addFrom.DataType == typeof(MissingReferenceInfo))
             {
-                return;
+                return false;
             }
+
+            var connections = nodes.Childs(addFrom).Count + nodes.Parents(addFrom).Count;
 
             AllLink(addFrom, addToThis, true);
 
             NodeLinker.UpdateLinks(addFrom, Main.SelectedCharacter, nodes);
             NodeLinker.UpdateLinks(addToThis, Main.SelectedCharacter, nodes);
+
+            var newConnections = nodes.Childs(addFrom).Count + nodes.Parents(addFrom).Count;
+            return newConnections != connections;
         }
 
         public static void Unlink(NodeStore nodes, Node removeFrom, Node removeThis)
