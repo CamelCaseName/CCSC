@@ -184,23 +184,20 @@ namespace CSC.Direct2D
 
                 DrawNodes(visible);
 
-                Node selected = Main.Selected;
-                if (visible.Contains(selected))
-                {
-                    DrawSelectdNode(nodes, selected, visible);
-                }
-
-                Node highlight = Main.Highlight;
-                if (visible.Contains(highlight))
-                {
-                    DrawHighlightedNode(nodes, highlight);
-                }
-
                 Node linkFrom = Main.LinkFrom;
                 if (visible.Contains(linkFrom))
                 {
                     linkFrom.TextColor = 2;
                     DrawNode(linkFrom, NodeToLinkNextBrush.AsBrush());
+                }
+
+                Node selected = Main.Selected;
+                DrawSelectdNode(nodes, selected, visible);
+
+                Node highlight = Main.Highlight;
+                if (visible.Contains(highlight))
+                {
+                    DrawHighlightedNode(nodes, highlight);
                 }
 
                 //target.SetAntialiasMode(AntialiasMode.PerPrimitive);
@@ -283,11 +280,18 @@ namespace CSC.Direct2D
 
                 if (selected.FileName != Main.SelectedCharacter)
                 {
+                    if (Main.HideDuped)
+                    {
+                        return;
+                    }
                     var interRect = ScaleRect(selected.Rectangle, 25).ToRoundedRect(18f);
-                    DrawNodeRectImpl(ref interRect, InterlinkedNodeBrush.AsBrush());
+                    DrawNodeRectImpl(ref interRect, ClickedNodeBrush.AsBrush());
                 }
-                var clickRect = ScaleRect(selected.Rectangle, 15).ToRoundedRect(15f);
-                DrawNodeRectImpl(ref clickRect, ClickedNodeBrush.AsBrush());
+                else
+                {
+                    var clickRect = ScaleRect(selected.Rectangle, 15).ToRoundedRect(15f);
+                    DrawNodeRectImpl(ref clickRect, ClickedNodeBrush.AsBrush());
+                }
 
                 selected.TextColor = 2;
                 DrawNode(selected, GetNodeColor(selected.Type, true));
@@ -713,7 +717,7 @@ namespace CSC.Direct2D
                 CreateBrush(Color.FromArgb(190, 180, 130), ref characterGroupNodeBrush);
                 CreateBrush(Color.FromArgb(95, 235, 60), ref clothingNodeBrush);
                 CreateBrush(Color.FromArgb(150, 50, 50), ref criteriaGroupNodeBrush);
-                CreateBrush(Color.FromArgb(180, 20, 40), ref criterionNodeBrush);
+                CreateBrush(Color.FromArgb(170, 20, 40), ref criterionNodeBrush);
                 CreateBrush(Color.FromArgb(235, 30, 160), ref cutsceneNodeBrush);
                 CreateBrush(Color.FromArgb(45, 60, 185), ref dialogueNodeBrush);
                 CreateBrush(Color.FromArgb(200, 225, 65), ref doorNodeBrush);
@@ -744,7 +748,7 @@ namespace CSC.Direct2D
                 CreateBrush(Color.FromArgb(190, 180, 130).Times(darkening), ref darkcharacterGroupNodeBrush);
                 CreateBrush(Color.FromArgb(95, 235, 60).Times(darkening), ref darkclothingNodeBrush);
                 CreateBrush(Color.FromArgb(150, 50, 50).Times(darkening), ref darkcriteriaGroupNodeBrush);
-                CreateBrush(Color.FromArgb(180, 20, 40).Times(darkening), ref darkcriterionNodeBrush);
+                CreateBrush(Color.FromArgb(170, 20, 40).Times(darkening), ref darkcriterionNodeBrush);
                 CreateBrush(Color.FromArgb(235, 30, 160).Times(darkening), ref darkcutsceneNodeBrush);
                 CreateBrush(Color.FromArgb(45, 60, 185).Times(darkening), ref darkdialogueNodeBrush);
                 CreateBrush(Color.FromArgb(200, 225, 65).Times(darkening), ref darkdoorNodeBrush);
@@ -766,7 +770,7 @@ namespace CSC.Direct2D
                 CreateBrush(Color.FromArgb(120, 0, 150).Times(darkening), ref darkvalueNodeBrush);
 
                 CreateBrush(Color.DarkCyan, ref HighlightNodeBrush);
-                CreateBrush(Color.BlueViolet, ref ClickedNodeBrush);
+                CreateBrush(Color.Red, ref ClickedNodeBrush);
                 CreateBrush(Color.LightGray, ref NodeToLinkNextBrush);
                 CreateBrush(Color.White, ref LightTextBrush);
                 CreateBrush(Color.DarkGray, ref DarkTextBrush);

@@ -6,7 +6,6 @@ using CSC.Search;
 using CSC.StoryItems;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Media;
@@ -142,11 +141,11 @@ public partial class Main : Form
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
     //############ TODOS before first release:
-    //todo update story things for nocturnal temptations
     //todo fix some certain gameevents not having same values after one guid fix
     //########################################################
 
     //############ stuff to do after release
+    //todo update story things for nocturnal temptations [only possible after csc release :( ]
     //todo fix broken propertyeditors, im sure there will be some
     //todo fix up node click linking to be more sensible
     //todo add indicator what node accepts linking
