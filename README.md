@@ -1,5 +1,10 @@
 # download
 [here](https://github.com/CamelCaseName/CCSC/releases/latest)
+# controls
+move with mouse and middle mouse button click
+ctrl+click to start linking
+space bar to start spawning nodes, or context menu with right click
+
 # screenshots
 <img width="1916" height="1051" alt="image" src="https://github.com/user-attachments/assets/f3696a7b-c49f-4b11-9742-83eb954b568f" />
 <img width="1915" height="917" alt="image" src="https://github.com/user-attachments/assets/ef5beb37-af02-43fd-b8a5-9734d8f0eb92" />
