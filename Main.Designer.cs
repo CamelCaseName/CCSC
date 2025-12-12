@@ -341,6 +341,7 @@ namespace CCSC
             HierarchyAndRest.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)HierarchyAndRest).EndInit();
             HierarchyAndRest.ResumeLayout(false);
+            GraphAndProperties.Panel1.ResumeLayout(false);
             GraphAndProperties.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)GraphAndProperties).EndInit();
             GraphAndProperties.ResumeLayout(false);
