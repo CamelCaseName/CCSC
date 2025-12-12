@@ -1677,6 +1677,11 @@ public partial class Main : Form
                 continue;
             }
             List<Node> notSet = [];
+            if (!Files.Contains(fileStore))
+            {
+                continue;
+            }
+
             SelectedCharacter = fileStore;
             //no idea why necessary but easier than looking for the weird ass cause
             nodes[fileStore].Positions.Clear();
