@@ -699,6 +699,8 @@ namespace CSC.Nodestuff
                     {
                         destination.Data<Dialogue>()!.AlternateTexts.Remove(source.Data<AlternateText>()!);
                     }
+                    source.Data<AlternateText>()!.Order = destination.Data<Dialogue>()!.AlternateTexts.Count;
+                    source.ID = $"{destination.Data<Dialogue>()!.ID}.{source.Data<AlternateText>()!.Order + 1}";
                 }
             }
             else if (source.DataType == typeof(Response))
@@ -819,6 +821,8 @@ namespace CSC.Nodestuff
                     {
                         source.Data<Dialogue>()!.AlternateTexts.Remove(destination.Data<AlternateText>()!);
                     }
+                    destination.Data<AlternateText>()!.Order = source.Data<Dialogue>()!.AlternateTexts.Count;
+                    destination.ID = $"{source.Data<Dialogue>()!.ID}.{destination.Data<AlternateText>()!.Order + 1}";
                 }
             }
             else if (source.DataType == typeof(BackgroundChatter))
@@ -1102,8 +1106,8 @@ namespace CSC.Nodestuff
 
             AllLink(addFrom, addToThis, true);
 
-            NodeLinker.UpdateLinks(addFrom, Main.SelectedCharacter, nodes);
-            NodeLinker.UpdateLinks(addToThis, Main.SelectedCharacter, nodes);
+            UpdateLinks(addFrom, Main.SelectedCharacter, nodes);
+            UpdateLinks(addToThis, Main.SelectedCharacter, nodes);
 
             var newConnections = nodes.Childs(addFrom).Count + nodes.Parents(addFrom).Count;
             return newConnections != connections;
@@ -1122,8 +1126,8 @@ namespace CSC.Nodestuff
 
             AllLink(removeFrom, removeThis, false);
 
-            NodeLinker.UpdateLinks(removeFrom, Main.SelectedCharacter, nodes);
-            NodeLinker.UpdateLinks(removeThis, Main.SelectedCharacter, nodes);
+            UpdateLinks(removeFrom, Main.SelectedCharacter, nodes);
+            UpdateLinks(removeThis, Main.SelectedCharacter, nodes);
         }
 
         public static void Interlinknodes(NodeStore store, string filename)
@@ -1181,9 +1185,25 @@ namespace CSC.Nodestuff
             //merge doors with items if applicable
             MergeDoors(store, true);
 
+            MergeEventTriggers(store);
+
             Debug.WriteLine($"completed for {Main.SelectedCharacter}/{store.Count} nodes in {(DateTime.UtcNow - start).TotalMilliseconds}ms");
 
             Main.SelectedCharacter = lastSelected;
+        }
+
+        private static void MergeEventTriggers(NodeStore store)
+        {
+            List<Node> triggers = [.. store.Nodes.Where(n => n.Type == NodeType.EventTrigger && n.DataType == typeof(MissingReferenceInfo) && n.FileName == store.FileName)];
+            foreach (var fakeTrigger in triggers)
+            {
+                //eventtrigger text starts with the name, : , then textified value of when it fires
+                var origTrigger = store.Nodes.FirstOrDefault(n => n.Text.AsSpan()[..Math.Min(fakeTrigger.Text.Length, n.Text.Length)].Equals(fakeTrigger.Text.AsSpan(), StringComparison.InvariantCultureIgnoreCase) && n.DataType == typeof(EventTrigger) && n.FileName == fakeTrigger.FileName);
+                if (origTrigger is not null)
+                {
+                    store.Replace(fakeTrigger, origTrigger);
+                }
+            }
         }
 
         public static void UpdateLinks(Node node, string fileName, NodeStore store)
@@ -2030,20 +2050,6 @@ namespace CSC.Nodestuff
                         }
                         case GameEvents.Quest:
                         {
-                            if (string.IsNullOrEmpty(gameEvent.Character))
-                            {
-                                foreach (string key in Main.Stories.Keys)
-                                {
-                                    for (int i = 0; i < Main.Stories[key].Quests!.Count; i++)
-                                    {
-                                        if (Main.Stories[key].Quests![i].ID == gameEvent.Key)
-                                        {
-                                            gameEvent.Character = key;
-                                            gameEvent.Value = Main.Stories[key].Quests![i].Name;
-                                        }
-                                    }
-                                }
-                            }
                             result = searchIn.Find((n) => n.Type == NodeType.Quest && n.ID == gameEvent.Key);
                             if (result is not null)
                             {
@@ -2057,7 +2063,7 @@ namespace CSC.Nodestuff
                             else if (dupeTo)
                             {
                                 //create and add property node, hasnt been referenced yet
-                                var quest = new Node(gameEvent.Key!, NodeType.Quest, gameEvent.Character + "'s quest " + gameEvent.Value + ", not found in loaded story files", gameEvent.Character);
+                                var quest = new Node(gameEvent.Key!, NodeType.Quest, gameEvent.Value + "| not found in loaded story files", gameEvent.Character);
                                 searchIn.Add(quest);
                                 nodes.AddChild(node, quest);
                                 quest.DupeToOtherSorting(node.FileName);
@@ -2156,6 +2162,11 @@ namespace CSC.Nodestuff
                             break;
                     }
 
+                    foreach (var crit in gameEvent.Criteria)
+                    {
+                        HandleCriterion(nodes, node, searchIn, crit, dupeTo);
+                    }
+
                     break;
                 }
                 case NodeType.EventTrigger when (trigger = node.Data<EventTrigger>()!) is not null:
@@ -2164,6 +2175,10 @@ namespace CSC.Nodestuff
                     foreach (GameEvent _event in trigger.Events!)
                     {
                         HandleEvent(nodes, node, searchIn, _event, dupeTo);
+                    }
+                    foreach (var crit in trigger.Critera)
+                    {
+                        HandleCriterion(nodes, node, searchIn, crit, dupeTo);
                     }
                     node.StaticText = trigger.Critera.Count == 0
                         ? trigger.Name + " " + trigger.Type
@@ -2175,6 +2190,14 @@ namespace CSC.Nodestuff
                     foreach (GameEvent _event in response.ResponseEvents!)
                     {
                         HandleEvent(nodes, node, searchIn, _event, dupeTo);
+                    }
+                    foreach (GameEvent _event in response.ResponseEvents!)
+                    {
+                        HandleEvent(nodes, node, searchIn, _event, dupeTo);
+                    }
+                    foreach (var crit in response.ResponseCriteria)
+                    {
+                        HandleCriterion(nodes, node, searchIn, crit, dupeTo);
                     }
 
                     if (response.Next == 0)
@@ -2205,70 +2228,59 @@ namespace CSC.Nodestuff
                 }
                 case NodeType.Dialogue when (dialogue = node.Data<Dialogue>()!) is not null:
                 {
-                    if (dialogue.Responses.Count > 0)
+                    foreach (var resp in dialogue.Responses)
                     {
-                        foreach (var resp in dialogue.Responses)
+                        result = searchIn.Find((n) => n.Type == NodeType.Response && n.ID == resp.Id!);
+
+                        if (result is not null)
                         {
-                            result = searchIn.Find((n) => n.Type == NodeType.Response && n.ID == resp.Id!);
-
-                            if (result is not null)
+                            if (dupeTo)
                             {
-                                if (dupeTo)
-                                {
-                                    result.DupeToOtherSorting(node.FileName);
-                                }
+                                result.DupeToOtherSorting(node.FileName);
+                            }
 
-                                nodes.AddChild(node, result);
-                            }
-                            else if (dupeTo)
-                            {
-                                //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
-                                var respNode = new Node(resp.Id!, NodeType.Response, $"response to {dialogue.ID} for {node.FileName}", Main.SelectedCharacter);
-                                searchIn.Add(respNode);
-                                nodes.AddChild(node, respNode);
-                            }
+                            nodes.AddChild(node, result);
+                        }
+                        else if (dupeTo)
+                        {
+                            //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
+                            var respNode = new Node(resp.Id!, NodeType.Response, $"response to {dialogue.ID} for {node.FileName}", Main.SelectedCharacter);
+                            searchIn.Add(respNode);
+                            nodes.AddChild(node, respNode);
                         }
                     }
 
-                    if (dialogue.AlternateTexts.Count > 0)
+                    foreach (var alternate in dialogue.AlternateTexts)
                     {
-                        foreach (var alternate in dialogue.AlternateTexts)
+                        //id is one higher than order
+                        result = searchIn.Find((n) => n.Type == NodeType.AlternateText && n.ID == $"{dialogue.ID}.{alternate.Order + 1!}");
+
+                        if (result is not null)
                         {
-                            result = searchIn.Find((n) => n.Type == NodeType.AlternateText && n.ID == $"{dialogue.ID}.{alternate.Order!}");
-
-                            if (result is not null)
+                            if (dupeTo)
                             {
-                                if (dupeTo)
-                                {
-                                    result.DupeToOtherSorting(node.FileName);
-                                }
+                                result.DupeToOtherSorting(node.FileName);
+                            }
 
-                                nodes.AddChild(node, result);
-                            }
-                            else if (dupeTo)
-                            {
-                                //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
-                                var _node = new Node($"{dialogue.ID}.{alternate.Order!}", NodeType.AlternateText, $"alternate to {dialogue.ID} for {node.FileName}", Main.SelectedCharacter);
-                                searchIn.Add(_node);
-                                nodes.AddChild(node, _node);
-                            }
+                            nodes.AddChild(node, result);
+                        }
+                        else if (dupeTo)
+                        {
+                            //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
+                            var _node = new Node($"{dialogue.ID}.{alternate.Order + 1!}", NodeType.AlternateText, $"alternate to {dialogue.ID} for {node.FileName}", Main.SelectedCharacter);
+                            searchIn.Add(_node);
+                            nodes.AddChild(node, _node);
                         }
                     }
 
-                    if (dialogue.StartEvents.Count > 0)
+                    foreach (var _event in dialogue.StartEvents)
                     {
-                        foreach (var _event in dialogue.StartEvents)
-                        {
-                            HandleEvent(nodes, node, searchIn, _event, dupeTo);
-                        }
+                        HandleEvent(nodes, node, searchIn, _event, dupeTo);
                     }
 
-                    if (dialogue.CloseEvents.Count > 0)
+                    foreach (var _event in dialogue.CloseEvents)
                     {
-                        foreach (var _event in dialogue.CloseEvents)
-                        {
-                            HandleEvent(nodes, node, searchIn, _event, dupeTo);
-                        }
+                        HandleEvent(nodes, node, searchIn, _event, dupeTo);
                     }
 
                     break;
@@ -2278,6 +2290,11 @@ namespace CSC.Nodestuff
                     foreach (GameEvent _event in itemAction.OnTakeActionEvents!)
                     {
                         HandleEvent(nodes, node, searchIn, _event, dupeTo);
+                    }
+
+                    foreach (var crit in itemAction.Criteria)
+                    {
+                        HandleCriterion(nodes, node, searchIn, crit, dupeTo);
                     }
 
                     break;
@@ -2293,6 +2310,7 @@ namespace CSC.Nodestuff
                     {
                         HandleUseWith(nodes, node, searchIn, _usewith, dupeTo);
                     }
+
                     break;
                 }
                 case NodeType.ItemGroupInteraction when (itemGroupInteraction = node.Data<ItemGroupInteraction>()!) is not null:
@@ -2307,13 +2325,18 @@ namespace CSC.Nodestuff
                         HandleEvent(nodes, node, searchIn, _event, dupeTo);
                     }
 
+                    foreach (var crit in itemGroupInteraction.Criteria)
+                    {
+                        HandleCriterion(nodes, node, searchIn, crit, dupeTo);
+                    }
+
                     break;
                 }
                 case NodeType.BGC when (chatter = node.Data<BackgroundChatter>()!) is not null:
                 {
                     foreach (var _response in chatter.Responses)
                     {
-                        result = searchIn.Find((n) => n.Type == NodeType.BGCResponse && n.ID == $"{_response.CharacterName}{_response.ChatterId}");
+                        result = searchIn.Find((n) => n.Type == NodeType.BGCResponse && n.FileName == node.FileName && n.Data<BackgroundChatterResponse>()?.CharacterName == _response.CharacterName && n.Data<BackgroundChatterResponse>()?.ChatterId == _response.ChatterId);
 
                         if (result is not null)
                         {
@@ -2323,19 +2346,31 @@ namespace CSC.Nodestuff
                             }
 
                             nodes.AddChild(node, result);
+
+                            HandleBGCResponse(nodes, searchIn, dupeTo, _response, result);
                         }
                         else if (dupeTo)
                         {
                             //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
-                            var newNode = new Node($"{_response.CharacterName}{_response.ChatterId}", NodeType.BGCResponse, $"{_response.CharacterName}{_response.ChatterId}", Main.SelectedCharacter);
+                            var newNode = new Node($"{_response.CharacterName}{_response.ChatterId}", NodeType.BGCResponse, $"{_response.CharacterName}{_response.ChatterId}", Main.SelectedCharacter)
+                            {
+                                RawData = _response,
+                            };
                             searchIn.Add(newNode);
                             nodes.AddChild(node, newNode);
+
+                            HandleBGCResponse(nodes, searchIn, dupeTo, _response, newNode);
                         }
                     }
 
                     foreach (var _event in chatter.StartEvents)
                     {
                         HandleEvent(nodes, node, searchIn, _event, dupeTo);
+                    }
+
+                    foreach (var crit in chatter.Critera)
+                    {
+                        HandleCriterion(nodes, node, searchIn, crit, dupeTo);
                     }
 
                     break;
@@ -2467,6 +2502,12 @@ namespace CSC.Nodestuff
                         StoryItems.Add(newNode);
                         nodes.AddChild(node, newNode);
                     }
+
+                    foreach (var crit in useWith.Criteria)
+                    {
+                        HandleCriterion(nodes, node, searchIn, crit, dupeTo);
+                    }
+
                     break;
                 }
                 case NodeType.InteractiveItemBehaviour when (StoryItem = node.Data<string>()!) is not null:
@@ -2516,6 +2557,28 @@ namespace CSC.Nodestuff
             }
         }
 
+        private static void HandleBGCResponse(NodeStore nodes, List<Node> searchIn, bool dupeTo, BackgroundChatterResponse _response, Node newNode)
+        {
+            var result = searchIn.Find((n) => n.Type == NodeType.BGC && n.FileName == _response.CharacterName && n.ID == $"BGC{_response.ChatterId}");
+
+            if (result is not null)
+            {
+                if (dupeTo)
+                {
+                    result.DupeToOtherSorting(newNode.FileName);
+                }
+
+                nodes.AddChild(newNode, result);
+            }
+            else if (dupeTo)
+            {
+                //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
+                var missingNode = new Node($"BGC{_response.ChatterId}", NodeType.BGC, $"BGC{_response.ChatterId}", _response.CharacterName);
+                searchIn.Add(missingNode);
+                nodes.AddChild(newNode, missingNode);
+            }
+        }
+
         private static void HandleUseWith(NodeStore nodes, Node node, List<Node> newList, UseWith _usewith, bool dupeTo = false)
         {
             Node? result = newList.Find((n) => n.Type == NodeType.UseWith && n.ID == _usewith.ItemName!);
@@ -2531,7 +2594,10 @@ namespace CSC.Nodestuff
             else if (dupeTo)
             {
                 //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
-                var newNode = new Node(_usewith.ItemName ?? string.Empty, NodeType.UseWith, _usewith.CustomCantDoThatMessage ?? string.Empty, Main.SelectedCharacter);
+                var newNode = new Node(_usewith.ItemName ?? string.Empty, NodeType.UseWith, _usewith.CustomCantDoThatMessage ?? string.Empty, Main.SelectedCharacter)
+                {
+                    RawData = _usewith
+                };
                 newList.Add(newNode);
                 nodes.AddChild(node, newNode);
             }
@@ -2588,6 +2654,27 @@ namespace CSC.Nodestuff
             }
         }
 
+        private static void HandleCriterion(NodeStore nodes, Node node, List<Node> newList, Criterion crit, bool dupeTo = false)
+        {
+            Node? result = newList.Find((n) => n.Type == NodeType.Criterion && n.ID == crit.ToString());
+            if (result is not null)
+            {
+                if (dupeTo)
+                {
+                    result.DupeToOtherSorting(node.FileName);
+                }
+
+                nodes.AddParent(node, result);
+            }
+            else if (dupeTo)
+            {
+                //create and add event, hasnt been referenced yet, we can not know its id if it doesnt already exist
+                var critNode = Node.CreateCriteriaNode(crit, nodes.FileName, nodes);
+                newList.Add(critNode);
+                nodes.AddParent(node, critNode);
+            }
+        }
+
         public static void InterlinkBetweenFiles(Dictionary<string, NodeStore> stores, bool removeDuplicateGUIDs = false)
         {
             var lastSelected = Main.SelectedCharacter;
@@ -2629,12 +2716,33 @@ namespace CSC.Nodestuff
                     if (node.Type == NodeType.EventTrigger && !GUIDRegex().IsMatch(node.ID))
                     {
                         //special handling for referenced eventtriggers as the missingrefeence has the name as id and not a guid
-                        result = [.. nodeStore.Nodes.Where(n => n.Type == node.Type && n.Text == node.ID && n.FileName == node.FileName && n.DataType != typeof(MissingReferenceInfo))];
+                        result = [.. nodeStore.Nodes.Where(n => n.Type == node.Type && n.Data<EventTrigger>()?.Name == node.ID && n.FileName == node.FileName)];
                     }
                     else if (node.Type == NodeType.Criterion)
                     {
                         //never happens :D
                         Debugger.Break();
+                    }
+                    else if (node.Type == NodeType.Quest)
+                    {
+                        var broke = false;
+                        foreach (string key in Main.Stories.Keys)
+                        {
+                            for (int q = 0; q < Main.Stories[key].Quests!.Count; q++)
+                            {
+                                Quest quest = Main.Stories[key].Quests![q];
+                                if (quest.ID == node.ID)
+                                {
+                                    result = [.. stores[key].Nodes.Where(n => n.Type == NodeType.Quest && n.ID == quest.ID && n.DataType != typeof(MissingReferenceInfo))];
+                                    broke = true;
+                                    break;
+                                }
+                            }
+                            if (broke)
+                            {
+                                break;
+                            }
+                        }
                     }
                     else
                     {
@@ -2679,7 +2787,7 @@ namespace CSC.Nodestuff
         private static void RemoveDuplicateGUIDs(NodeStore store)
         {
             var tempList = new List<Node>(store.Nodes);
-            
+
             for (int i = 0; i < tempList.Count; i++)
             {
                 Node? node = tempList[i];
@@ -2711,6 +2819,10 @@ namespace CSC.Nodestuff
                         if (duplicateNode.RawData is GameEvent g)
                         {
                             g.Id = Guid.NewGuid().ToString();
+                        }
+                        else if (duplicateNode.RawData is BackgroundChatterResponse b)
+                        {
+                            b.Label = Guid.NewGuid().ToString();
                         }
                         else if (duplicateNode.RawData is EventTrigger e)
                         {
@@ -2799,7 +2911,7 @@ namespace CSC.Nodestuff
                     {
                         foreach (var store in stores)
                         {
-                            if(store.Key == Main.NoCharacter)
+                            if (store.Key == Main.NoCharacter)
                             {
                                 continue;
                             }

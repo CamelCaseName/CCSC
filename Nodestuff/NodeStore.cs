@@ -8,7 +8,7 @@ namespace CSC.Nodestuff
         public readonly NodePositionSorting Positions = new();
         private readonly Dictionary<Node, List<Node>> childs = [];
         private readonly Dictionary<Node, List<Node>> parents = [];
-        private readonly string fileName = fileName;
+        public readonly string FileName = fileName;
 
         public void Add(Node node)
         {
@@ -41,7 +41,7 @@ namespace CSC.Nodestuff
                 parents.Remove(node);
             }
 
-            Main.ClearNodePos(node, fileName);
+            Main.ClearNodePos(node, FileName);
         }
 
         public void Clear()
@@ -239,7 +239,7 @@ namespace CSC.Nodestuff
             AddParents(replacement, parents);
 
             var pos = node.Position;
-            Main.ClearNodePos(node, fileName);
+            Main.ClearNodePos(node, FileName);
             Main.ClearNodePos(node, replacement.FileName);
             replacement.Position = pos;
         }

@@ -59,7 +59,7 @@ public partial class Main : Form
     public bool MovingChild = false;
     public const int NodeSizeX = 200;
     public const int NodeSizeY = 50;
-    public const string HousePartyVersion = "1.4.2";
+    public const string HousePartyVersion = "1.5.0";
     public const string NoCharacter = "None";
     public const string Player = "Player";
     public static readonly Dictionary<string, CharacterStory> Stories = [];
@@ -141,13 +141,11 @@ public partial class Main : Form
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
     //############ TODOS before first release:
-    //todo fix some certain gameevents not having same values after one guid fix
     //########################################################
 
     //############ stuff to do after release
     //todo update story things for nocturnal temptations [only possible after csc release :( ]
     //todo fix broken propertyeditors, im sure there will be some
-    //todo fix up node click linking to be more sensible
     //todo add indicator what node accepts linking
     //todo optimize memory footprint of search
     //todo add story node cache on disk
@@ -466,7 +464,7 @@ public partial class Main : Form
                 }
                 default:
                 {
-                    return [SpawnableNodeType.Criterion, SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.EventTrigger, SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.ItemGroup, SpawnableNodeType.Value, SpawnableNodeType.CriteriaGroup];
+                    return [SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.EventTrigger, SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.ItemGroup, SpawnableNodeType.Value, SpawnableNodeType.CriteriaGroup];
                 }
             }
         }
@@ -521,7 +519,7 @@ public partial class Main : Form
                 }
                 default:
                 {
-                    return [SpawnableNodeType.Criterion, SpawnableNodeType.EventTrigger, SpawnableNodeType.Value];
+                    return [SpawnableNodeType.EventTrigger, SpawnableNodeType.Value, SpawnableNodeType.Dialogue, SpawnableNodeType.BGC, SpawnableNodeType.GameEvent];
                 }
             }
         }
@@ -1408,23 +1406,26 @@ public partial class Main : Form
 
     public static void GetLinkCircleRects(Node node, out RectangleF rightRect)
     {
-        //todo this can for sure be optimized...
-        rightRect = new RectangleF(node.Position + new SizeF(node.Size.Width - CircleSize.Width / 2, (node.Size.Height / 2) - CircleSize.Width / 2), CircleSize);
         if (node.FileName != SelectedCharacter)
         {
             if (node == Instance.SelectedNode)
             {
-                rightRect.Location += new SizeF(25 / 2, 0);
+                rightRect = new RectangleF(node.Position + new SizeF(node.Size.Width - (CircleSize.Width / 2) + (25 / 2), (node.Size.Height / 2) - CircleSize.Width / 2), CircleSize);
+                return;
             }
             else
             {
-                rightRect.Location += new SizeF(15 / 2, 0);
+                rightRect = new RectangleF(node.Position + new SizeF(node.Size.Width - (CircleSize.Width / 2) + (15 / 2), (node.Size.Height / 2) - CircleSize.Width / 2), CircleSize);
+                return;
             }
         }
         else if (node == Instance.SelectedNode)
         {
-            rightRect.Location += new SizeF(15 / 2, 0);
+            rightRect = new RectangleF(node.Position + new SizeF(node.Size.Width - (CircleSize.Width / 2) + (15 / 2), (node.Size.Height / 2) - CircleSize.Width / 2), CircleSize);
+            return;
         }
+
+        rightRect = new RectangleF(node.Position + new SizeF(node.Size.Width - CircleSize.Width / 2, (node.Size.Height / 2) - CircleSize.Width / 2), CircleSize);
     }
 
     private void EndPan()
@@ -1548,7 +1549,12 @@ public partial class Main : Form
         }
         Reset();
 
-        var dialog = new OpenFileDialog();
+        var dialog = new OpenFileDialog
+        {
+            CheckFileExists = true,
+            Filter = "story files (*.story;*.character)|*.story;*.character|All files (*.*)|*.*",
+        };
+
         var result = dialog.ShowDialog();
 
         if (result != DialogResult.OK)
@@ -1558,9 +1564,13 @@ public partial class Main : Form
 
         string FilePath = dialog.FileName;
 
-        if (File.Exists(FilePath))
+        if (File.Exists(FilePath) && (Path.GetExtension(FilePath) is (".story" or ".character")))
         {
             LoadAllFilesIntoStore(FilePath);
+        }
+        else
+        {
+            SystemSounds.Beep.Play();
         }
     }
 
@@ -1669,7 +1679,7 @@ public partial class Main : Form
             nodes[fileStore].Positions.Clear();
             foreach (var node in nodes[fileStore].Nodes)
             {
-                if (positions[fileStore].TryGetValue(new NodeID(fileStore, node.Type, node.ID, node.Text), out var point))
+                if (positions[fileStore].TryGetValue(new NodeID(node.FileName, node.Type, node.ID, node.Text), out var point))
                 {
                     node.Position = point;
                 }
@@ -1720,7 +1730,7 @@ public partial class Main : Form
             positions.Add(nodeStore, []);
             foreach (var node in nodes[nodeStore].Nodes)
             {
-                positions[nodeStore].Add(new NodeID(nodeStore, node.Type, node.ID, node.Text), node.Position);
+                positions[nodeStore].Add(new NodeID(node.FileName, node.Type, node.ID, node.Text), node.Position);
             }
         }
 
@@ -2787,65 +2797,73 @@ public partial class Main : Form
                 PropertyInspector.RowCount = 2;
                 PropertyInspector.ColumnCount = 9;
 
-                Label label = GetLabel(node.FileName + "'s\n Background Chatter" + node.ID + "\nSpeaking to:");
+                //id is BGCxx we only want xx
+                Label label = GetLabel(node.FileName + "'s\n Background Chatter " + node.ID[3..] + "\nSpeaking to:");
                 PropertyInspector.Controls.Add(label);
 
                 BackgroundChatter dialogue = node.Data<BackgroundChatter>()!;
-
-                ComboBox talkingTo = GetComboBox();
-                talkingTo.Items.AddRange(Enum.GetNames<AnybodyCharacters>());
-                talkingTo.SelectedItem = dialogue.SpeakingTo;
-                talkingTo.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => dialogue.SpeakingTo = talkingTo.SelectedItem!.ToString()!);
-                PropertyInspector.Controls.Add(talkingTo);
-
-                label = GetLabel("Importance:");
-                PropertyInspector.Controls.Add(label);
-
-                ComboBox importance = GetComboBox();
-                importance.Items.AddRange(Enum.GetNames<Importance>());
-                importance.SelectedItem = dialogue.SpeakingTo;
-                importance.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => dialogue.SpeakingTo = importance.SelectedItem!.ToString()!);
-                PropertyInspector.Controls.Add(importance);
-
-                CheckBox checkBox = GetCheckbox("Is conversation starter:", dialogue.IsConversationStarter);
-                checkBox.CheckedChanged += (_, args) => dialogue.IsConversationStarter = checkBox.Checked;
-                PropertyInspector.Controls.Add(checkBox);
-
-                checkBox = GetCheckbox("Override combat in vicinity:", dialogue.OverrideCombatRestriction);
-                checkBox.CheckedChanged += (_, args) => dialogue.OverrideCombatRestriction = checkBox.Checked;
-                PropertyInspector.Controls.Add(checkBox);
-
-                checkBox = GetCheckbox("Silence Voice Acting:", dialogue.PlaySilently);
-                checkBox.CheckedChanged += (_, args) => dialogue.PlaySilently = checkBox.Checked;
-                PropertyInspector.Controls.Add(checkBox);
-
-                label = GetLabel("Paired Emote:");
-                PropertyInspector.Controls.Add(label);
-
-                ComboBox pairedEmote = GetComboBox();
-                pairedEmote.Items.AddRange(Enum.GetNames<BGCEmotes>());
-                pairedEmote.SelectedItem = dialogue.PairedEmote;
-                pairedEmote.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => dialogue.PairedEmote = Enum.Parse<BGCEmotes>(pairedEmote.SelectedItem.ToString()!));
-                PropertyInspector.Controls.Add(pairedEmote);
-
-                TextBox text = new()
+                if (dialogue is not null)
                 {
-                    Text = dialogue.Text,
-                    Multiline = true,
-                    WordWrap = true,
-                    ScrollBars = ScrollBars.Both,
-                    Dock = DockStyle.Fill,
-                    ForeColor = Color.LightGray,
-                    BackColor = Color.FromArgb(50, 50, 50),
-                };
-                text.TextChanged += (_, _) => dialogue.Text = text.Text;
-                text.TextChanged += (_, _) => { NodeLinker.UpdateLinks(node, node.FileName, nodes[SelectedCharacter]); Graph.Invalidate(); };
-                text.Select();
-                PropertyInspector.RowStyles[0].SizeType = SizeType.Absolute;
-                PropertyInspector.RowStyles[0].Height = 55;
-                PropertyInspector.Controls.Add(text, 0, 1);
-                PropertyInspector.SetColumnSpan(text, 10);
-                PropertyInspector.AutoSize = false;
+                    ComboBox talkingTo = GetComboBox();
+                    talkingTo.Items.AddRange(Enum.GetNames<AnybodyCharacters>());
+                    talkingTo.SelectedItem = dialogue.SpeakingTo ?? "Anybody";
+                    talkingTo.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => dialogue.SpeakingTo = talkingTo.SelectedItem!.ToString()!);
+                    PropertyInspector.Controls.Add(talkingTo);
+
+                    label = GetLabel("Importance:");
+                    PropertyInspector.Controls.Add(label);
+
+                    ComboBox importance = GetComboBox();
+                    importance.Items.AddRange(Enum.GetNames<Importance>());
+                    importance.SelectedItem = dialogue.SpeakingTo;
+                    importance.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => dialogue.SpeakingTo = importance.SelectedItem!.ToString()!);
+                    PropertyInspector.Controls.Add(importance);
+
+                    CheckBox checkBox = GetCheckbox("Is conversation starter:", dialogue.IsConversationStarter);
+                    checkBox.CheckedChanged += (_, args) => dialogue.IsConversationStarter = checkBox.Checked;
+                    PropertyInspector.Controls.Add(checkBox);
+
+                    checkBox = GetCheckbox("Override combat in vicinity:", dialogue.OverrideCombatRestriction);
+                    checkBox.CheckedChanged += (_, args) => dialogue.OverrideCombatRestriction = checkBox.Checked;
+                    PropertyInspector.Controls.Add(checkBox);
+
+                    checkBox = GetCheckbox("Silence Voice Acting:", dialogue.PlaySilently);
+                    checkBox.CheckedChanged += (_, args) => dialogue.PlaySilently = checkBox.Checked;
+                    PropertyInspector.Controls.Add(checkBox);
+
+                    label = GetLabel("Paired Emote:");
+                    PropertyInspector.Controls.Add(label);
+
+                    ComboBox pairedEmote = GetComboBox();
+                    pairedEmote.Items.AddRange(Enum.GetNames<BGCEmotes>());
+                    pairedEmote.SelectedItem = dialogue.PairedEmote;
+                    pairedEmote.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => dialogue.PairedEmote = Enum.Parse<BGCEmotes>(pairedEmote.SelectedItem.ToString()!));
+                    PropertyInspector.Controls.Add(pairedEmote);
+
+                    TextBox text = new()
+                    {
+                        Text = dialogue.Text,
+                        Multiline = true,
+                        WordWrap = true,
+                        ScrollBars = ScrollBars.Both,
+                        Dock = DockStyle.Fill,
+                        ForeColor = Color.LightGray,
+                        BackColor = Color.FromArgb(50, 50, 50),
+                    };
+                    text.TextChanged += (_, _) => dialogue.Text = text.Text;
+                    text.TextChanged += (_, _) => { NodeLinker.UpdateLinks(node, node.FileName, nodes[SelectedCharacter]); Graph.Invalidate(); };
+                    text.Select();
+                    PropertyInspector.RowStyles[0].SizeType = SizeType.Absolute;
+                    PropertyInspector.RowStyles[0].Height = 55;
+                    PropertyInspector.Controls.Add(text, 0, 1);
+                    PropertyInspector.SetColumnSpan(text, 10);
+                    PropertyInspector.AutoSize = false;
+                }
+                else
+                {
+                    Label label2 = GetLabel("No data on this node!", ContentAlignment.TopCenter);
+                    PropertyInspector.Controls.Add(label2);
+                }
                 break;
             }
             case NodeType.Dialogue:
@@ -2909,28 +2927,33 @@ public partial class Main : Form
                 PropertyInspector.RowCount = 2;
                 PropertyInspector.ColumnCount = 10;
 
-                Label label = GetLabel("Alternate text for " + node.FileName + "'s Dialogue " + node.ID + "\n Sort order:");
+                Label label = GetLabel("Alternate text " + node.ID);
                 PropertyInspector.Controls.Add(label, 0, 0);
+
+                Label label2 = GetLabel("Sort order:");
+                PropertyInspector.Controls.Add(label2, 1, 0);
                 AlternateText alternate = node.Data<AlternateText>()!;
 
                 if (alternate is null)
                 {
-                    Label label2 = GetLabel("No data on this node", ContentAlignment.TopCenter);
-                    PropertyInspector.Controls.Add(label2);
+                    Label label3 = GetLabel("No data on this node", ContentAlignment.TopCenter);
+                    PropertyInspector.Controls.Add(label3);
                     break;
                 }
 
-                NumericUpDown sortOrder = GetNumericUpDown(alternate.Order);
+                //order 0 -> id xx.1
+                //order 1 -> id xx.2
+                NumericUpDown sortOrder = GetNumericUpDown(alternate.Order + 1);
                 sortOrder.DecimalPlaces = 0;
                 sortOrder.Minimum = 0;
-                sortOrder.ValueChanged += (_, _) => alternate.Order = (int)sortOrder.Value;
+                sortOrder.ValueChanged += (_, _) => alternate.Order = (int)sortOrder.Value - 1;
                 sortOrder.ValueChanged += (_, _) => { NodeLinker.UpdateLinks(node, node.FileName, nodes[SelectedCharacter]); Graph.Invalidate(); };
-                PropertyInspector.Controls.Add(sortOrder, 1, 0);
+                PropertyInspector.Controls.Add(sortOrder, 2, 0);
 
                 label = GetLabel("");
                 label.Dock = DockStyle.None;
                 label.Width = 400;
-                PropertyInspector.Controls.Add(label, 2, 0);
+                PropertyInspector.Controls.Add(label, 3, 0);
 
                 TextBox text = new()
                 {
@@ -4378,7 +4401,7 @@ public partial class Main : Form
             }
             case NodeType.UseWith:
             {
-                Label label = GetLabel("Custom use with fail message");
+                Label label = GetLabel("Custom can't do that message");
                 PropertyInspector.Controls.Add(label);
 
                 if (node.Data<UseWith>() is not null)
@@ -4474,6 +4497,7 @@ public partial class Main : Form
                     {
                         response.CharacterName = Stories.First().Key;
                     }
+
                     if (Stories[response.CharacterName].BackgroundChatter.Count > 0)
                     {
                         var box = GetComboBox();
@@ -4484,8 +4508,18 @@ public partial class Main : Form
 
                         box.SelectedItem = response.ChatterId;
                         box.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => response.ChatterId = int.Parse(box.SelectedItem.ToString() ?? "0"));
+                        PropertyInspector.Controls.Add(box);
 
-                        var chatter = GetLabel(Stories[response.CharacterName].BackgroundChatter[int.Parse(box.SelectedItem?.ToString() ?? "0")].Text);
+                        int bgcIndex = int.Parse(box.SelectedItem?.ToString() ?? "1") - 1;
+                        Label chatter;
+                        if (bgcIndex < Stories[response.CharacterName].BackgroundChatter.Count)
+                        {
+                            chatter = GetLabel(Stories[response.CharacterName].BackgroundChatter[bgcIndex].Text);
+                        }
+                        else
+                        {
+                            chatter = GetLabel($"BGC {bgcIndex} for {response.CharacterName} not found");
+                        }
                         PropertyInspector.Controls.Add(chatter);
                     }
                     else
@@ -5616,7 +5650,6 @@ public partial class Main : Form
             case SpawnableNodeType.UseWith:
             {
                 string id = "use on item:";
-                //todo add auto linking to item name in ID
                 newNode = new Node(id, NodeType.UseWith, string.Empty, nodes[character].Positions, character)
                 {
                     RawData = new UseWith() { ItemName = id },

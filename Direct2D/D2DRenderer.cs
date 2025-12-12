@@ -34,6 +34,7 @@ namespace CSC.Direct2D
         private ComPtr<ID2D1LinearGradientBrush> InterlinkedNodeBrush;
         private ComPtr<ID2D1PathGeometry> edgeGeometry;
         private ComPtr<ID2D1PathGeometry> mainEdgeGeometry;
+        private ComPtr<ID2D1SolidColorBrush> MissingNodeBrush;
         private ComPtr<ID2D1SolidColorBrush> achievementNodeBrush;
         private ComPtr<ID2D1SolidColorBrush> alternateTextNodeBrush;
         private ComPtr<ID2D1SolidColorBrush> bgcNodeBrush;
@@ -120,6 +121,11 @@ namespace CSC.Direct2D
         private bool mustFreeOldCache = false;
         private float currentScale = 0f;
 
+#if DEBUG
+        private const bool DebugMissing = true;
+#else
+        private const bool DebugMissing = false;
+#endif
         public D2DRenderer()
         {
             GetD2DResources();
@@ -143,75 +149,82 @@ namespace CSC.Direct2D
 
         public void Paint(Graphics g, NodeStore nodes, RectangleF screenclip)
         {
-            DateTime start = DateTime.UtcNow;
-            unsafe
+            try
             {
-                currentScale = Main.Scalee;
-                //oldbounds is 3x so we dont have to regenerate a often, even when panning around but also doesnt encompass ALL nodes
-                adjustedVisibleClipBounds = new(Main.Offset.X - Main.NodeSizeX,
-                                                Main.Offset.Y - Main.NodeSizeY,
-                                                g.VisibleClipBounds.Width + Main.NodeSizeX,
-                                                g.VisibleClipBounds.Height + Main.NodeSizeY);
-
-                //cannot access transform after weve connectd the deviceContexts...so we save it here before connecting
-                Matrix3X2<float> position = g.Transform.MatrixElements.ToMatrix3X2();
-
-                //Bind each frame...
-                Box2D<int> dcRect = screenclip.ToBox();
-                nint hdc = g.GetHdc();
-                int res = target.BindDC(hdc, ref dcRect);
-                if (res != 0)
+                DateTime start = DateTime.UtcNow;
+                unsafe
                 {
-                    Debugger.Break();
+                    currentScale = Main.Scalee;
+                    //oldbounds is 3x so we dont have to regenerate a often, even when panning around but also doesnt encompass ALL nodes
+                    adjustedVisibleClipBounds = new(Main.Offset.X - Main.NodeSizeX,
+                                                    Main.Offset.Y - Main.NodeSizeY,
+                                                    g.VisibleClipBounds.Width + Main.NodeSizeX,
+                                                    g.VisibleClipBounds.Height + Main.NodeSizeY);
+
+                    //cannot access transform after weve connectd the deviceContexts...so we save it here before connecting
+                    Matrix3X2<float> position = g.Transform.MatrixElements.ToMatrix3X2();
+
+                    //Bind each frame...
+                    Box2D<int> dcRect = screenclip.ToBox();
+                    nint hdc = g.GetHdc();
+                    int res = target.BindDC(hdc, ref dcRect);
+                    if (res != 0)
+                    {
+                        Debugger.Break();
+                    }
+
+                    target.BeginDraw();
+                    target.SetTransform(ref position);
+                    D3Dcolorvalue bc = new(40 / 255f, 40 / 255f, 40 / 255f, 1f);
+                    target.Clear(ref bc);
+
+                    TryGenerateCache(nodes);
+
+                    //cached
+                    target.DrawGeometry((ID2D1Geometry*)mainEdgeGeometry.Handle, linePen.AsBrush(), linePenWidth, defaultStyle.Handle);
+
+                    List<Node> visible = nodes.Positions[adjustedVisibleClipBounds];
+
+                    //target.SetAntialiasMode(AntialiasMode.Aliased);
+                    //target.SetTextAntialiasMode(Silk.NET.Direct2D.TextAntialiasMode.Default);
+
+                    RemoveFilteredNodes(ref visible);
+
+                    DrawNodes(visible);
+
+                    Node linkFrom = Main.LinkFrom;
+                    if (visible.Contains(linkFrom))
+                    {
+                        linkFrom.TextColor = 2;
+                        DrawNode(linkFrom, NodeToLinkNextBrush.AsBrush());
+                    }
+
+                    Node selected = Main.Selected;
+                    DrawSelectdNode(nodes, selected, visible);
+
+                    Node highlight = Main.Highlight;
+                    if (visible.Contains(highlight))
+                    {
+                        DrawHighlightedNode(nodes, highlight);
+                    }
+
+                    //target.SetAntialiasMode(AntialiasMode.PerPrimitive);
+
+                    ulong tag1 = 0, tag2 = 0;
+                    target.EndDraw(ref tag1, ref tag2);
+                    g.ReleaseHdc(hdc);
                 }
 
-                target.BeginDraw();
-                target.SetTransform(ref position);
-                D3Dcolorvalue bc = new(40 / 255f, 40 / 255f, 40 / 255f, 1f);
-                target.Clear(ref bc);
+                DateTime end = DateTime.UtcNow;
 
-                TryGenerateCache(nodes);
-
-                //cached
-                target.DrawGeometry((ID2D1Geometry*)mainEdgeGeometry.Handle, linePen.AsBrush(), linePenWidth, defaultStyle.Handle);
-
-                List<Node> visible = nodes.Positions[adjustedVisibleClipBounds];
-
-                //target.SetAntialiasMode(AntialiasMode.Aliased);
-                //target.SetTextAntialiasMode(Silk.NET.Direct2D.TextAntialiasMode.Default);
-
-                RemoveFilteredNodes(ref visible);
-
-                DrawNodes(visible);
-
-                Node linkFrom = Main.LinkFrom;
-                if (visible.Contains(linkFrom))
+                if ((end - start).TotalMilliseconds > 20)
                 {
-                    linkFrom.TextColor = 2;
-                    DrawNode(linkFrom, NodeToLinkNextBrush.AsBrush());
+                    Debug.WriteLine($"Node Render took {(end - start).TotalMilliseconds}ms");
                 }
-
-                Node selected = Main.Selected;
-                DrawSelectdNode(nodes, selected, visible);
-
-                Node highlight = Main.Highlight;
-                if (visible.Contains(highlight))
-                {
-                    DrawHighlightedNode(nodes, highlight);
-                }
-
-                //target.SetAntialiasMode(AntialiasMode.PerPrimitive);
-
-                ulong tag1 = 0, tag2 = 0;
-                target.EndDraw(ref tag1, ref tag2);
-                g.ReleaseHdc(hdc);
             }
-
-            DateTime end = DateTime.UtcNow;
-
-            if ((end - start).TotalMilliseconds > 20)
+            catch (Exception ex)
             {
-                Debug.WriteLine($"Node Render took {(end - start).TotalMilliseconds}ms");
+                Debugger.Break();
             }
         }
 
@@ -306,7 +319,22 @@ namespace CSC.Direct2D
             {
                 //default
                 node.TextColor = 1;
-                DrawNode(node, GetNodeColor(node.Type, false));
+                if (DebugMissing)
+                {
+                    if (node.DataType == typeof(MissingReferenceInfo)
+                        && (node.Type is not (NodeType.State or NodeType.Clothing or NodeType.Cutscene or NodeType.Door or NodeType.Inventory or NodeType.Pose or NodeType.Property or NodeType.Social)))
+                    {
+                        DrawNode(node, MissingNodeBrush.AsBrush());
+                    }
+                    else
+                    {
+                        DrawNode(node, GetNodeColor(node.Type, false));
+                    }
+                }
+                else
+                {
+                    DrawNode(node, GetNodeColor(node.Type, false));
+                }
             }
         }
 
@@ -453,27 +481,61 @@ namespace CSC.Direct2D
                         continue;
                     }
 
-                    ComPtr<IDWriteTextLayout> layout = default;
+                    GenerateTextLayoutForNode(node);
+                }
 
-                    var textRectSize = node.Size;
-                    textRectSize -= new Size(6, 6);
-
-                    var text = node.Text.AsSpan()[..Math.Min(node.Text.Length, 100)].ToArray();
-                    if (text.Length == 0)
+                //add the nodes connected to the selected one
+                Node selected = Main.Selected;
+                if (selected != Node.NullNode)
+                {
+                    if (!layouts.ContainsKey(selected))
                     {
-                        text = [' '];
+                        GenerateTextLayoutForNode(selected);
                     }
-
-                    fixed (char* t = text)
+                    foreach (var node in nodes.Childs(selected))
                     {
-                        res = dwfactory.CreateTextLayout(t, (uint)text.Length, defaultFormat.Handle, textRectSize.Width, textRectSize.Height, layout.GetAddressOf());
-                    }
+                        if (layouts.ContainsKey(node))
+                        {
+                            continue;
+                        }
 
-                    layouts.Add(node, layout);
+                        GenerateTextLayoutForNode(node);
+                    }
+                    foreach (var node in nodes.Parents(selected))
+                    {
+                        if (layouts.ContainsKey(node))
+                        {
+                            continue;
+                        }
+
+                        GenerateTextLayoutForNode(node);
+                    }
                 }
 
                 mustFreeOldCache = true;
             }
+        }
+
+        private void GenerateTextLayoutForNode(Node node)
+        {
+            int res;
+            ComPtr<IDWriteTextLayout> layout = default;
+
+            var textRectSize = node.Size;
+            textRectSize -= new Size(6, 6);
+
+            var text = node.Text.AsSpan()[..Math.Min(node.Text.Length, 100)].ToArray();
+            if (text.Length == 0)
+            {
+                text = [' '];
+            }
+
+            fixed (char* t = text)
+            {
+                res = dwfactory.CreateTextLayout(t, (uint)text.Length, defaultFormat.Handle, textRectSize.Width, textRectSize.Height, layout.GetAddressOf());
+            }
+
+            layouts.Add(node, layout);
         }
 
         private void DrawEdge(Node parent, Node child, ID2D1Brush* pen, float width)
@@ -712,7 +774,7 @@ namespace CSC.Direct2D
                 CreateBrush(Color.FromArgb(100, 100, 100), ref defaultNodeBrush);
                 CreateBrush(Color.FromArgb(200, 10, 200), ref achievementNodeBrush);
                 CreateBrush(Color.FromArgb(110, 120, 190), ref alternateTextNodeBrush);
-                CreateBrush(Color.FromArgb(40, 190, 255), ref bgcNodeBrush);
+                CreateBrush(Color.FromArgb(70, 170, 255), ref bgcNodeBrush);
                 CreateBrush(Color.FromArgb(150, 225, 255), ref bgcResponseNodeBrush);
                 CreateBrush(Color.FromArgb(190, 180, 130), ref characterGroupNodeBrush);
                 CreateBrush(Color.FromArgb(95, 235, 60), ref clothingNodeBrush);
@@ -775,6 +837,7 @@ namespace CSC.Direct2D
                 CreateBrush(Color.White, ref LightTextBrush);
                 CreateBrush(Color.DarkGray, ref DarkTextBrush);
                 CreateBrush(Color.Black, ref BlackTextBrush);
+                CreateBrush(Color.HotPink, ref MissingNodeBrush);
 
                 BrushProperties brushProperties = new(opacity: 100);
                 LinearGradientBrushProperties linearProperties = new()
@@ -942,6 +1005,7 @@ namespace CSC.Direct2D
             LightTextBrush.Release();
             DarkTextBrush.Release();
             BlackTextBrush.Release();
+            MissingNodeBrush.Release();
 
             if (mustFreeOldCache)
             {

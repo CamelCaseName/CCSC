@@ -34,7 +34,7 @@ namespace CSC.Nodestuff
                 //responses
                 foreach (BackgroundChatterResponse response in backgroundChatter.Responses ?? [])
                 {
-                    var nodeResponse = new Node($"{response.Label}", NodeType.BGCResponse, $"{response.CharacterName} - BGC{response.ChatterId}", bgcNode, story.CharacterName!) { RawData = response };
+                    var nodeResponse = new Node($"{response.Label}", NodeType.BGCResponse, $"{response.CharacterName}{response.ChatterId}", bgcNode, story.CharacterName!) { RawData = response };
 
                     nodes.AddChild(bgcNode, nodeResponse);
                 }
@@ -266,7 +266,7 @@ namespace CSC.Nodestuff
                 var nodeItem = new Node(item.ItemName!, NodeType.ItemInteraction, item.ItemName!, story.CharacterName!)
                 {
                     RawData = item,
-                    
+
                 };
                 nodeItem.AddCriteria(item.Critera ?? [], nodes);
                 nodeItem.AddEvents(item.OnRefuseEvents ?? [], nodes);
@@ -277,7 +277,7 @@ namespace CSC.Nodestuff
 
         public static void GetPersonality(CharacterStory story, NodeStore nodes)
         {
-            var traitRoot = new Node(story.CharacterName + "'s Traits", NodeType.Personality, story.CharacterName + "'s Traits", story.Personality!, story.CharacterName!) {RawData = story.Personality };
+            var traitRoot = new Node(story.CharacterName + "'s Traits", NodeType.Personality, story.CharacterName + "'s Traits", story.Personality!, story.CharacterName!) { RawData = story.Personality };
             nodes.Add(traitRoot);
             foreach (Trait valuee in story.Personality?.Values ?? [])
             {
@@ -305,7 +305,7 @@ namespace CSC.Nodestuff
 
         public static void GetQuests(CharacterStory story, NodeStore nodes)
         {
-            var questRoot = new Node(story.CharacterName + "'s Quests", NodeType.Quest, story.CharacterName + "'s Quests", story.CharacterName!) {  };
+            var questRoot = new Node(story.CharacterName + "'s Quests", NodeType.Quest, story.CharacterName + "'s Quests", story.CharacterName!) { };
             nodes.Add(questRoot);
             foreach (Quest quest in story.Quests ?? [])
             {
@@ -315,17 +315,17 @@ namespace CSC.Nodestuff
                 //Add details
                 if (quest.Details?.Length > 0)
                 {
-                    nodes.AddChild(nodeQuest, new Node($"{quest.ID}Description", NodeType.Quest, quest.Details, story.CharacterName!) {  });
+                    nodes.AddChild(nodeQuest, new Node($"{quest.ID}Description", NodeType.Quest, quest.Details, story.CharacterName!) { RawData = quest.Details });
                 }
                 //Add completed details
                 if (quest.CompletedDetails?.Length > 0)
                 {
-                    nodes.AddChild(nodeQuest, new Node($"{quest.ID}CompletedDetails", NodeType.Quest, quest.CompletedDetails, story.CharacterName!) {  });
+                    nodes.AddChild(nodeQuest, new Node($"{quest.ID}CompletedDetails", NodeType.Quest, quest.CompletedDetails, story.CharacterName!) { RawData = quest.CompletedDetails });
                 }
                 //Add failed details
                 if (quest.FailedDetails?.Length > 0)
                 {
-                    nodes.AddChild(nodeQuest, new Node($"{quest.ID}FailedDetails", NodeType.Quest, quest.FailedDetails, story.CharacterName!) {  });
+                    nodes.AddChild(nodeQuest, new Node($"{quest.ID}FailedDetails", NodeType.Quest, quest.FailedDetails, story.CharacterName!) { RawData = quest.FailedDetails });
                 }
 
                 //Add extended details
