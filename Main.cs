@@ -2752,6 +2752,7 @@ public partial class Main : Form
                     case CompareTypes.Value:
                     {
                         PutCompareType(node, criterion);
+                        PutCharacter1(node, criterion);
 
                         ComboBox value = GetComboBox();
                         if (criterion.Character == Player)
