@@ -1,14 +1,11 @@
-﻿using CSC.Direct2D;
-using CSC.Glue;
-using CSC.StoryItems;
-using Silk.NET.Core.Win32Extras;
+﻿using CCSC.Direct2D;
+using CCSC.Glue;
+using CCSC.StoryItems;
 using System.Data;
-using System.Diagnostics;
 using System.Text.Json.Serialization;
-using System.Xml.Linq;
-using static CSC.StoryItems.StoryEnums;
+using static CCSC.StoryItems.StoryEnums;
 
-namespace CSC.Nodestuff
+namespace CCSC.Nodestuff
 {
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -314,7 +311,7 @@ namespace CSC.Nodestuff
                 case NodeType.GameEvent:
                 {
                     GameEvent gevent = Data<GameEvent>()!;
-                    if(gevent is null)
+                    if (gevent is null)
                     {
                         return StaticText;
                     }
@@ -428,7 +425,7 @@ namespace CSC.Nodestuff
         {
             foreach (Criterion criterion in criteria)
             {
-                Node tempNode = CreateCriteriaNode(criterion, this.FileName, nodes);
+                Node tempNode = CreateCriteriaNode(criterion, FileName, nodes);
                 tempNode.RawData = criterion;
                 nodes.AddParent(this, tempNode);
             }
@@ -438,7 +435,7 @@ namespace CSC.Nodestuff
         {
             foreach (GameEvent _event in events)
             {
-                var nodeEvent = new Node(_event.Id ?? "none", NodeType.GameEvent, _event.Value ?? "none", this, this.FileName)
+                var nodeEvent = new Node(_event.Id ?? "none", NodeType.GameEvent, _event.Value ?? "none", this, FileName)
                 {
                     RawData = _event,
                     DataType = typeof(GameEvent),

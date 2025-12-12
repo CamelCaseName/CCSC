@@ -1,16 +1,13 @@
-﻿using CSC.Glue;
-using CSC.Nodestuff;
+﻿using CCSC.Glue;
+using CCSC.Nodestuff;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct2D;
 using Silk.NET.DirectWrite;
 using Silk.NET.DXGI;
 using Silk.NET.Maths;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Xml.Linq;
 using AlphaMode = Silk.NET.Direct2D.AlphaMode;
 using DashStyle = Silk.NET.Direct2D.DashStyle;
-using DWExtensions = Silk.NET.DirectWrite.DWriteFactoryVtblExtensions;
 using DWFactoryType = Silk.NET.DirectWrite.FactoryType;
 using DWrite = Silk.NET.DirectWrite.DWrite;
 using FactoryType = Silk.NET.Direct2D.FactoryType;
@@ -19,7 +16,7 @@ using IDWriteTextFormat = Silk.NET.DirectWrite.IDWriteTextFormat;
 using IDWriteTextLayout = Silk.NET.DirectWrite.IDWriteTextLayout;
 using LineJoin = Silk.NET.Direct2D.LineJoin;
 
-namespace CSC.Direct2D
+namespace CCSC.Direct2D
 {
     internal unsafe class D2DRenderer
     {
@@ -322,7 +319,7 @@ namespace CSC.Direct2D
                 if (DebugMissing)
                 {
                     if (node.DataType == typeof(MissingReferenceInfo)
-                        && (node.Type is not (NodeType.State or NodeType.Clothing or NodeType.Cutscene or NodeType.Door or NodeType.Inventory or NodeType.Pose or NodeType.Property or NodeType.Social)))
+                        && node.Type is not (NodeType.State or NodeType.Clothing or NodeType.Cutscene or NodeType.Door or NodeType.Inventory or NodeType.Pose or NodeType.Property or NodeType.Social))
                     {
                         DrawNode(node, MissingNodeBrush.AsBrush());
                     }
@@ -356,7 +353,7 @@ namespace CSC.Direct2D
 
             foreach (var item in list)
             {
-                if (Main.HiddenTypes.Contains(item.Type) || (Main.HideDuped && item.FileName != Main.SelectedCharacter))
+                if (Main.HiddenTypes.Contains(item.Type) || Main.HideDuped && item.FileName != Main.SelectedCharacter)
                 {
                     continue;
                 }
@@ -390,7 +387,7 @@ namespace CSC.Direct2D
 
         private void TryGenerateCache(NodeStore nodes)
         {
-            if (Main.PositionsChanged || !oldBounds.Contains(adjustedVisibleClipBounds) || (oldBounds.Width - (adjustedVisibleClipBounds.Width * 5) > 0))
+            if (Main.PositionsChanged || !oldBounds.Contains(adjustedVisibleClipBounds) || oldBounds.Width - adjustedVisibleClipBounds.Width * 5 > 0)
             {
                 oldBounds = new(adjustedVisibleClipBounds.X - adjustedVisibleClipBounds.Width, adjustedVisibleClipBounds.Y - adjustedVisibleClipBounds.Height, adjustedVisibleClipBounds.Width * 3, adjustedVisibleClipBounds.Height * 3);
 
@@ -423,7 +420,7 @@ namespace CSC.Direct2D
 
                 foreach (var node in nodes.Nodes)
                 {
-                    if (Main.HiddenTypes.Contains(node.Type) || (Main.HideDuped && node.FileName != Main.SelectedCharacter))
+                    if (Main.HiddenTypes.Contains(node.Type) || Main.HideDuped && node.FileName != Main.SelectedCharacter)
                     {
                         continue;
                     }
@@ -433,7 +430,7 @@ namespace CSC.Direct2D
                         foreach (var item in list)
                         {
 
-                            if (Main.HiddenTypes.Contains(item.Type) || (Main.HideDuped && item.FileName != Main.SelectedCharacter))
+                            if (Main.HiddenTypes.Contains(item.Type) || Main.HideDuped && item.FileName != Main.SelectedCharacter)
                             {
                                 continue;
                             }
@@ -589,8 +586,8 @@ namespace CSC.Direct2D
             float distanceX = MathF.Abs(end.X - start.X);
             if (start.X < end.X)
             {
-                controlStart = new((distanceX / 2) + start.X, start.Y);
-                controlEnd = new(((end.X - start.X) / 2) + start.X, end.Y);
+                controlStart = new(distanceX / 2 + start.X, start.Y);
+                controlEnd = new((end.X - start.X) / 2 + start.X, end.Y);
             }
             else
             {
@@ -605,8 +602,8 @@ namespace CSC.Direct2D
                     controlStartY = start.Y + distanceY / 2;
                     controlEndY = end.Y - distanceY / 2;
                 }
-                controlStart = new((start.X + distanceX / 2), controlStartY);
-                controlEnd = new((end.X - distanceX / 2), controlEndY);
+                controlStart = new(start.X + distanceX / 2, controlStartY);
+                controlEnd = new(end.X - distanceX / 2, controlEndY);
             }
         }
 
@@ -650,7 +647,7 @@ namespace CSC.Direct2D
             if (currentScale > 0.28f)
             {
                 var brushColor = (*(ID2D1SolidColorBrush*)brush).GetColor();
-                if ((brushColor.R * 0.299 + brushColor.G * 0.587 + brushColor.B * 0.114) > 0.6f)
+                if (brushColor.R * 0.299 + brushColor.G * 0.587 + brushColor.B * 0.114 > 0.6f)
                 {
                     node.TextColor = 0;
                 }
@@ -664,15 +661,15 @@ namespace CSC.Direct2D
                 {
                     //black
                     case 0:
-                        D2D1DCRenderTargetVtblExtensions.DrawTextLayout(target, scaledLocation, (Silk.NET.Direct2D.IDWriteTextLayout*)layouts[node].Handle, BlackTextBrush.AsBrush(), DrawTextOptions.Clip);
+                        target.DrawTextLayout(scaledLocation, (Silk.NET.Direct2D.IDWriteTextLayout*)layouts[node].Handle, BlackTextBrush.AsBrush(), DrawTextOptions.Clip);
                         break;
                     //dark
                     case 1:
-                        D2D1DCRenderTargetVtblExtensions.DrawTextLayout(target, scaledLocation, (Silk.NET.Direct2D.IDWriteTextLayout*)layouts[node].Handle, DarkTextBrush.AsBrush(), DrawTextOptions.Clip);
+                        target.DrawTextLayout(scaledLocation, (Silk.NET.Direct2D.IDWriteTextLayout*)layouts[node].Handle, DarkTextBrush.AsBrush(), DrawTextOptions.Clip);
                         break;
                     //light
                     case 2:
-                        D2D1DCRenderTargetVtblExtensions.DrawTextLayout(target, scaledLocation, (Silk.NET.Direct2D.IDWriteTextLayout*)layouts[node].Handle, LightTextBrush.AsBrush(), DrawTextOptions.Clip);
+                        target.DrawTextLayout(scaledLocation, (Silk.NET.Direct2D.IDWriteTextLayout*)layouts[node].Handle, LightTextBrush.AsBrush(), DrawTextOptions.Clip);
                         break;
                     default:
                         break;
@@ -693,7 +690,7 @@ namespace CSC.Direct2D
             }
         }
 
-        private static RectangleF ScaleRect(RectangleF rect, float increase) => new(rect.X - (increase / 2), rect.Y - (increase / 2), rect.Width + increase, rect.Height + increase);
+        private static RectangleF ScaleRect(RectangleF rect, float increase) => new(rect.X - increase / 2, rect.Y - increase / 2, rect.Width + increase, rect.Height + increase);
 
         private ID2D1Brush* GetNodeColor(NodeType type, bool light)
         {
@@ -898,8 +895,7 @@ namespace CSC.Direct2D
                     Debugger.Break();
                 }
 
-                res = DWExtensions.CreateTextFormat(dwfactory,
-                                                    fontFamilyName,
+                res = dwfactory.CreateTextFormat(fontFamilyName,
                                                     (IDWriteFontCollection*)0,
                                                     FontWeight.ExtraLight,
                                                     Silk.NET.DirectWrite.FontStyle.Normal,

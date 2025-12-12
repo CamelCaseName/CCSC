@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 
-namespace CSC.Nodestuff
+namespace CCSC.Nodestuff
 {
     public sealed class NodeStore(string fileName)
     {

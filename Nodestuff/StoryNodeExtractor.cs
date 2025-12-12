@@ -1,7 +1,6 @@
-using CSC.StoryItems;
-using System.Xml.Schema;
+using CCSC.StoryItems;
 
-namespace CSC.Nodestuff
+namespace CCSC.Nodestuff
 {
     public static class StoryNodeExtractor
     {

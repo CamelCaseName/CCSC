@@ -1,16 +1,7 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Formats.Asn1;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
-namespace CSC.StoryItems
+namespace CCSC.StoryItems
 {
     internal class NullEnumConverter<T> : JsonConverter<T> where T : struct, Enum
     {
@@ -68,7 +59,7 @@ namespace CSC.StoryItems
 
             string source = ((ReadOnlySpan<char>)charBuffer).Trim().ToString();
 
-            if (Enum.TryParse<T>(source, out result))
+            if (Enum.TryParse(source, out result))
             {
                 return true;
             }

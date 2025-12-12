@@ -1,8 +1,8 @@
-﻿using CSC.Nodestuff;
+﻿using CCSC.Nodestuff;
 using System.Diagnostics;
-using static CSC.StoryItems.StoryEnums;
+using static CCSC.StoryItems.StoryEnums;
 
-namespace CSC.Search
+namespace CCSC.Search
 {
     internal static class SearchTrie
     {

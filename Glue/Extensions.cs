@@ -1,9 +1,9 @@
-using CSC.Nodestuff;
+using CCSC.Nodestuff;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Text;
 
-namespace CSC.Glue
+namespace CCSC.Glue
 {
     public static class Extensions
     {

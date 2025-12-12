@@ -1,9 +1,9 @@
-﻿using CSC.Glue;
+﻿using CCSC.Glue;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
-using static CSC.StoryItems.StoryEnums;
+using static CCSC.StoryItems.StoryEnums;
 
-namespace CSC.StoryItems
+namespace CCSC.StoryItems
 {
     public interface IItem
     {
@@ -262,7 +262,7 @@ namespace CSC.StoryItems
                     }
                     case CompareTypes.Posing:
                     {
-                        return $"{CompareType} {Character} {PoseOption} {(PoseOption == PoseOptions.CurrentPose ? (EqualsValue.ToString() + Value) : BoolValue)}";
+                        return $"{CompareType} {Character} {PoseOption} {(PoseOption == PoseOptions.CurrentPose ? EqualsValue.ToString() + Value : BoolValue)}";
                     }
                     case CompareTypes.Property:
                     {
@@ -641,7 +641,7 @@ namespace CSC.StoryItems
                         break;
                         case GameEvents.Combat:
                         {
-                            if (Option == (int)(CombatOptions.Fight))
+                            if (Option == (int)CombatOptions.Fight)
                             {
                                 return $"{EventType} {Character} {EEnum.Parse<CombatOptions>(Option)} {Character2}";
                             }
@@ -679,11 +679,11 @@ namespace CSC.StoryItems
                         }
                         case GameEvents.Dialogue:
                         {
-                            if (((DialogueAction)Option) == DialogueAction.Overhear)
+                            if ((DialogueAction)Option == DialogueAction.Overhear)
                             {
                                 return $"{EventType} {Character} {EEnum.Parse<DialogueAction>(Option)} {Character2}";
                             }
-                            else if (((DialogueAction)Option) == DialogueAction.Trigger || ((DialogueAction)Option) == DialogueAction.SetStartDialogue)
+                            else if ((DialogueAction)Option == DialogueAction.Trigger || (DialogueAction)Option == DialogueAction.SetStartDialogue)
                             {
                                 return $"{EventType} {Character} {EEnum.Parse<DialogueAction>(Option)} {Value}";
                             }

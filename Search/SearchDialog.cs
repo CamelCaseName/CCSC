@@ -1,8 +1,8 @@
-﻿using CSC.Nodestuff;
-using CSC.Search;
+﻿using CCSC.Nodestuff;
+using CCSC.Search;
 using System.Media;
 
-namespace CSC.Components
+namespace CCSC.Components
 {
     public partial class SearchDialog : Form
     {

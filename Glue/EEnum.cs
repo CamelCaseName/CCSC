@@ -1,4 +1,4 @@
-namespace CSC.Glue
+namespace CCSC.Glue
 {
     public static class EEnum
     {

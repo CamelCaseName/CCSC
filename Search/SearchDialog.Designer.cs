@@ -1,4 +1,4 @@
-﻿namespace CSC.Components
+﻿namespace CCSC.Components
 {
     partial class SearchDialog
     {

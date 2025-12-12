@@ -1,10 +1,10 @@
-﻿namespace CSC.Nodestuff
+﻿namespace CCSC.Nodestuff
 {
     public readonly ref struct NodeID(string file, NodeType Type, string ID, string text)
     {
         public NodeType Type { get; } = Type;
         public ReadOnlySpan<char> ID { get; } = ID.AsSpan();
-        public ReadOnlySpan<char> Text { get; } = text.AsSpan()[..(Math.Min(50, text.Length))];
+        public ReadOnlySpan<char> Text { get; } = text.AsSpan()[..Math.Min(50, text.Length)];
         public ReadOnlySpan<char> File { get; } = file.AsSpan();
 
         public static implicit operator long(NodeID n)

@@ -1,4 +1,4 @@
-namespace CSC
+namespace CCSC
 {
     internal static class Program
     {

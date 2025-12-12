@@ -1,4 +1,4 @@
-namespace CSC.Glue
+namespace CCSC.Glue
 {
     class MouseMessageFilter : IMessageFilter
     {
@@ -10,16 +10,16 @@ namespace CSC.Glue
 
             if (m.Msg == WM_MOUSEMOVE)
             {
-                if(Form.ActiveForm is null)
+                if (Form.ActiveForm is null)
                 {
                     return false;
                 }
-                if(Form.ActiveForm.GetType() != typeof(Main))
+                if (Form.ActiveForm.GetType() != typeof(Main))
                 {
                     return false;
                 }
 
-                var mousePosition = new Point(0,0);
+                var mousePosition = new Point(0, 0);
                 MouseMove(null, new MouseEventArgs(MouseButtons.None, 0, mousePosition.X, mousePosition.Y, 0));
             }
             return false;

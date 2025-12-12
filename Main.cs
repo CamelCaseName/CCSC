@@ -1,9 +1,9 @@
-using CSC.Components;
-using CSC.Direct2D;
-using CSC.Glue;
-using CSC.Nodestuff;
-using CSC.Search;
-using CSC.StoryItems;
+using CCSC.Components;
+using CCSC.Direct2D;
+using CCSC.Glue;
+using CCSC.Nodestuff;
+using CCSC.Search;
+using CCSC.StoryItems;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -11,11 +11,11 @@ using System.Drawing.Imaging;
 using System.Media;
 using System.Numerics;
 using System.Text.Json;
-using static CSC.StoryItems.StoryEnums;
+using static CCSC.StoryItems.StoryEnums;
 using Enum = System.Enum;
 using Rectangle = System.Drawing.Rectangle;
 
-namespace CSC;
+namespace CCSC;
 
 public partial class Main : Form
 {
@@ -60,6 +60,7 @@ public partial class Main : Form
     public const int NodeSizeX = 200;
     public const int NodeSizeY = 50;
     public const string HousePartyVersion = "1.5.0";
+    public const string CCSCVersion = "0.0.1";
     public const string NoCharacter = "None";
     public const string Player = "Player";
     public static readonly Dictionary<string, CharacterStory> Stories = [];
@@ -199,6 +200,8 @@ public partial class Main : Form
 
         render = new();
         Graph.Invalidate();
+
+        Text += " " + CCSCVersion;
     }
 
     private void OnFormClosing(object? sender, FormClosingEventArgs? e)

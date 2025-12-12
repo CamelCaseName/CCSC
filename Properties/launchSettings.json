@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "CSC": {
+    "CCSC": {
       "commandName": "Project",
       "nativeDebugging": true
     }

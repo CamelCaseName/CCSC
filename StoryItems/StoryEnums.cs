@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;//Token:0x\w|d|\s|:*\n
 
-namespace CSC.StoryItems
+namespace CCSC.StoryItems
 {
     ////Token:0x\w|d|\s|:*\n
     //searchtermtoremovealltokencomments
@@ -413,7 +413,7 @@ namespace CSC.StoryItems
             ToggleWetEffect,
             ToggleBloodyEffect
         }
-        
+
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum AddRemoveActions
         {
@@ -745,7 +745,7 @@ namespace CSC.StoryItems
             Equals,
             Add
         }
-        
+
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum TurnOptions
         {

@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace CSC
+namespace CCSC
 {
     public static partial class NewFileDialog
     {

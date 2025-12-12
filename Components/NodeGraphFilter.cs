@@ -1,6 +1,6 @@
-﻿using CSC.Nodestuff;
+﻿using CCSC.Nodestuff;
 
-namespace CSC.Components
+namespace CCSC.Components
 {
     public partial class NodeGraphFilter : Form
     {

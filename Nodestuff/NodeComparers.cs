@@ -1,4 +1,4 @@
-namespace CSC.Nodestuff
+namespace CCSC.Nodestuff
 {
     public class NodeComparers(NodeStore store) : IComparer<Node>
     {

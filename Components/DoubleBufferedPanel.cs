@@ -1,4 +1,4 @@
-﻿namespace CSC.Components
+﻿namespace CCSC.Components
 {
     public class DoubleBufferedPanel : Panel
     {

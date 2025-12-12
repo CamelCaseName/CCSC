@@ -1,10 +1,10 @@
-﻿using CSC.Glue;
-using CSC.StoryItems;
+﻿using CCSC.Glue;
+using CCSC.StoryItems;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using static CSC.StoryItems.StoryEnums;
+using static CCSC.StoryItems.StoryEnums;
 
-namespace CSC.Nodestuff
+namespace CCSC.Nodestuff
 {
     internal static partial class NodeLinker
     {
