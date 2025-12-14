@@ -141,9 +141,6 @@ public partial class Main : Form
     public static Node Highlight => Instance.highlightNode;
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
-    //############ TODOS before first release:
-    //########################################################
-
     //############ stuff to do after release
     //todo update story things for nocturnal temptations [only possible after csc release :( ]
     //todo fix broken propertyeditors, im sure there will be some

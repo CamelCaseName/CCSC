@@ -2138,7 +2138,7 @@ namespace CCSC.Nodestuff
                         }
                         case GameEvents.TriggerBGC:
                         {
-                            result = searchIn.Find((n) => n.Type == NodeType.BGC && n.ID == "BGC" + gameEvent.Value);
+                            result = searchIn.Find((n) => n.Type == NodeType.BGC && n.ID == "BGC" + gameEvent.Value && n.FileName == gameEvent.Character);
                             if (result is not null)
                             {
                                 if (dupeTo)
