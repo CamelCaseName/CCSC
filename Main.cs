@@ -4,6 +4,7 @@ using CCSC.Glue;
 using CCSC.Nodestuff;
 using CCSC.Search;
 using CCSC.StoryItems;
+using Silk.NET.Core.Win32Extras;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -312,13 +313,66 @@ public partial class Main : Form
                 PropertyInspector.Controls.Clear();
             }
         }
-        else if (e.KeyData == Keys.Delete && Graph.Focused)
+        else if (e.KeyData == Keys.Delete)
         {
-            TryDeleteNode();
+            if (Graph.Focused)
+            {
+                TryDeleteNode();
+            }
+            else if (StoryTree.Focused)
+            {
+                TryDeleteStory();
+            }
         }
         else if (e.KeyData == Keys.F && IsCtrlPressed)
         {
             StartSearch();
+        }
+    }
+
+    private void TryDeleteStory()
+    {
+        if (StoryTree.SelectedNode?.Text != "Characters" && StoryTree.SelectedNode?.Text != "Story Root" && StoryTree.SelectedNode?.Text != StoryName && StoryTree.SelectedNode is not null)
+        {
+            if (MessageBox.Show("Are you sure, you want to delete this character? Its file will also be deleted! References you have to clean up on your own!", "Delete Character", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
+            {
+                return;
+            }
+            string CharToDelete = StoryTree.SelectedNode.Text;
+            SelectedNode = Nodestuff.Node.NullNode;
+            var Node = StoryTree.SelectedNode;
+
+            if (CharToDelete == SelectedCharacter)
+            {
+                SelectedCharacter = StoryName;
+            }
+
+            foreach (var n in nodes[CharToDelete].Nodes)
+            {
+                SearchTrie.RemoveNode(n);
+                n.RemoveFromSorting(SelectedFile);
+            }
+
+            File.Delete(Path.Combine(StoryFolder, CharToDelete + ".character"));
+
+            //remove last references
+            Stories.Remove(CharToDelete);
+            nodes.Remove(CharToDelete);
+            //dont clear Files List as the index references have to stay consistent
+            OffsetX.Remove(CharToDelete);
+            OffsetY.Remove(CharToDelete);
+            Scaling.Remove(CharToDelete);
+            StoryTree.Nodes.Remove(Node);
+            //needed for the renderer to redraw its cache
+            positionsChanged = true;
+
+            SafeSavePositions();
+
+            Graph.Invalidate();
+        }
+        else
+        {
+            SystemSounds.Beep.Play();
         }
     }
 
@@ -1189,7 +1243,11 @@ public partial class Main : Form
 
     private void AddCharacterStory(string newCharacterName)
     {
-        Files.Add(newCharacterName);
+        if (!Files.Contains(newCharacterName))
+        {
+            Files.Add(newCharacterName);
+        }
+
         CharacterStory story = new(newCharacterName);
         Stories[newCharacterName] = story;
         SelectedCharacter = newCharacterName;
@@ -5852,5 +5910,10 @@ public partial class Main : Form
     {
         //instance is always there anyways
         NodeGraphFilter.Instance.Visible = !NodeGraphFilter.Instance.Visible;
+    }
+
+    private void StoryTreeContextRight_Click(object sender, EventArgs e)
+    {
+        TryDeleteStory();
     }
 }

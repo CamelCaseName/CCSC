@@ -45,8 +45,9 @@ namespace CCSC
             StoryTree = new TreeView();
             HierarchyAndRest = new SplitContainer();
             GraphAndProperties = new SplitContainer();
-            PropertyInspector = new TableLayoutPanel();
+            Graph = new DoubleBufferedPanel();
             NodeSpawnBox = new ComboBox();
+            PropertyInspector = new TableLayoutPanel();
             NodeContext = new ContextMenuStrip(components);
             PullChildsMenu = new ToolStripMenuItem();
             PullParentsMenu = new ToolStripMenuItem();
@@ -56,7 +57,8 @@ namespace CCSC
             Seperator1 = new ToolStripSeparator();
             Seperator2 = new ToolStripSeparator();
             Seperator3 = new ToolStripSeparator();
-            Graph = new DoubleBufferedPanel();
+            TreeContext = new ContextMenuStrip(components);
+            toolStripMenuItem1 = new ToolStripMenuItem();
             Menu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)HierarchyAndRest).BeginInit();
             HierarchyAndRest.Panel1.SuspendLayout();
@@ -67,6 +69,7 @@ namespace CCSC
             GraphAndProperties.Panel2.SuspendLayout();
             GraphAndProperties.SuspendLayout();
             Graph.SuspendLayout();
+            TreeContext.SuspendLayout();
             SuspendLayout();
             // 
             // Menu
@@ -123,19 +126,6 @@ namespace CCSC
             Add.Text = "Add Story";
             Add.Click += Add_Click;
             // 
-            // Graph
-            // 
-            Graph.Controls.Add(NodeSpawnBox);
-            Graph.Dock = DockStyle.Fill;
-            Graph.Location = new Point(0, 0);
-            Graph.Name = "Graph";
-            Graph.Size = new Size(935, 346);
-            Graph.TabIndex = 0;
-            Graph.Paint += Graph_Paint;
-            Graph.MouseClick += HandleMouseEvents;
-            Graph.MouseDoubleClick += HandleMouseEvents;
-            Graph.MouseWheel += HandleMouseEvents;
-            // 
             // cursorPos
             // 
             cursorPos.Alignment = ToolStripItemAlignment.Right;
@@ -169,6 +159,7 @@ namespace CCSC
             // StoryTree
             // 
             StoryTree.BackColor = Color.FromArgb(50, 50, 50);
+            StoryTree.ContextMenuStrip = TreeContext;
             StoryTree.Dock = DockStyle.Fill;
             StoryTree.ForeColor = Color.White;
             StoryTree.FullRowSelect = true;
@@ -223,18 +214,18 @@ namespace CCSC
             GraphAndProperties.SplitterDistance = 316;
             GraphAndProperties.TabIndex = 0;
             // 
-            // PropertyInspector
+            // Graph
             // 
-            PropertyInspector.BackColor = Color.FromArgb(50, 50, 50);
-            PropertyInspector.Dock = DockStyle.Fill;
-            PropertyInspector.GrowStyle = TableLayoutPanelGrowStyle.AddColumns;
-            PropertyInspector.Location = new Point(0, 0);
-            PropertyInspector.Name = "PropertyInspector";
-            PropertyInspector.RowCount = 2;
-            PropertyInspector.RowStyles.Add(new RowStyle());
-            PropertyInspector.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            PropertyInspector.Size = new Size(935, 103);
-            PropertyInspector.TabIndex = 0;
+            Graph.Controls.Add(NodeSpawnBox);
+            Graph.Dock = DockStyle.Fill;
+            Graph.Location = new Point(0, 0);
+            Graph.Name = "Graph";
+            Graph.Size = new Size(935, 316);
+            Graph.TabIndex = 0;
+            Graph.Paint += Graph_Paint;
+            Graph.MouseClick += HandleMouseEvents;
+            Graph.MouseDoubleClick += HandleMouseEvents;
+            Graph.MouseWheel += HandleMouseEvents;
             // 
             // NodeSpawnBox
             // 
@@ -254,6 +245,19 @@ namespace CCSC
             NodeSpawnBox.SelectedIndexChanged += SpawnNodeFromSpaceSpawner;
             NodeSpawnBox.SelectionChangeCommitted += SpawnNodeFromSpaceSpawner;
             NodeSpawnBox.SelectedValueChanged += SpawnNodeFromSpaceSpawner;
+            // 
+            // PropertyInspector
+            // 
+            PropertyInspector.BackColor = Color.FromArgb(50, 50, 50);
+            PropertyInspector.Dock = DockStyle.Fill;
+            PropertyInspector.GrowStyle = TableLayoutPanelGrowStyle.AddColumns;
+            PropertyInspector.Location = new Point(0, 0);
+            PropertyInspector.Name = "PropertyInspector";
+            PropertyInspector.RowCount = 2;
+            PropertyInspector.RowStyles.Add(new RowStyle());
+            PropertyInspector.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            PropertyInspector.Size = new Size(935, 103);
+            PropertyInspector.TabIndex = 0;
             // 
             // NodeContext
             // 
@@ -318,6 +322,19 @@ namespace CCSC
             Seperator3.Name = "Seperator3";
             Seperator3.Size = new Size(152, 6);
             // 
+            // TreeContext
+            // 
+            TreeContext.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1 });
+            TreeContext.Name = "TreeContext";
+            TreeContext.Size = new Size(209, 26);
+            // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(208, 22);
+            toolStripMenuItem1.Text = "Delete Selected Character";
+            toolStripMenuItem1.Click += StoryTreeContextRight_Click;
+            // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(96F, 96F);
@@ -346,6 +363,7 @@ namespace CCSC
             ((System.ComponentModel.ISupportInitialize)GraphAndProperties).EndInit();
             GraphAndProperties.ResumeLayout(false);
             Graph.ResumeLayout(false);
+            TreeContext.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -375,5 +393,7 @@ namespace CCSC
         private ToolStripLabel cursorPos;
         private ToolStripButton toolStripButton1;
         private ToolStripButton FilterButton;
+        private ContextMenuStrip TreeContext;
+        private ToolStripMenuItem toolStripMenuItem1;
     }
 }
