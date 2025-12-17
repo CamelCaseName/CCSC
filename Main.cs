@@ -134,7 +134,21 @@ public partial class Main : Form
 
     public int LeftClickFrameCounter { get; private set; } = 0;
 
-    public static bool NeedsSaving { get => needsSaving; set => needsSaving = value; }
+    public static bool NeedsSaving
+    {
+        get => needsSaving; set
+        {
+            if (!needsSaving && value)
+            {
+                Instance.Text += " *";
+            }
+            else if (needsSaving && !value)
+            {
+                Instance.Text = Instance.Text[..^2];
+            }
+            needsSaving = value;
+        }
+    }
     private Node SelectedNode = null!;
 
     public static Node Selected => Instance.SelectedNode;
