@@ -263,6 +263,11 @@ namespace CCSC.Nodestuff
             }
             return false;
         }
+
+        internal Node Last()
+        {
+            return _nodes[^1];
+        }
     }
 
     public record struct Family(List<Node> Childs, List<Node> Parents)

@@ -40,8 +40,8 @@ public partial class Main : Form
     private Node nodeToLinkFrom;
     private Point oldMousePosBeforeSpawnWindow = Point.Empty;
     private Point startSelectingMousePos = Point.Empty;
-    private readonly int scaleX = (int)(NodeSizeX * 1.5f);
-    private readonly int scaleY = (int)(NodeSizeY * 1.5f);
+    private const int scaleX = (int)(NodeSizeX * 1.5f);
+    private const int scaleY = (int)(NodeSizeY * 1.5f);
     private readonly List<int> maxYperX = [];
     public static readonly List<Node> selected = [];
     private readonly List<Node> visited = [];
@@ -53,14 +53,14 @@ public partial class Main : Form
     private SizeF OffsetFromDragClick = SizeF.Empty;
     private static bool needsSaving;
     private static MainStory Story = null!;
-    private static readonly Dictionary<string, NodeStore> nodes = [];
+    internal static readonly Dictionary<string, NodeStore> nodes = [];
     private static string _selectedCharacter = NoCharacter;
     private string StoryFolder = string.Empty;
     public bool MovingChild = false;
     public const int NodeSizeX = 200;
     public const int NodeSizeY = 50;
     public const string HousePartyVersion = "1.5.0";
-    public const string CCSCVersion = "0.0.1";
+    public const string CCSCVersion = "0.0.2";
     public const string NoCharacter = "None";
     public const string Player = "Player";
     public static readonly Dictionary<string, CharacterStory> Stories = [];
@@ -205,7 +205,7 @@ public partial class Main : Form
     {
         if (Story is null || Stories.Count <= 0 || !NeedsSaving)
         {
-            if (MessageBox.Show("Are you sure, you want to close the Program?", "Close the Program?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
+            if (MessageBox.Show("Are you sure, you want to close the Program? GameEvents not connected to an Eventtrigger, Dialogue or similar will be deleted!", "Close the Program?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
             {
                 e!.Cancel = true;
             }
@@ -1212,7 +1212,6 @@ public partial class Main : Form
             foreach (var character in Enum.GetNames<StoryCharacters>())
             {
                 AddCharacterStory(character);
-                AddCharacterAsItemToStory(character);
             }
             SetupStartPositions();
         }
@@ -3225,6 +3224,7 @@ public partial class Main : Form
                                 box.Items.Add(item.ID);
                             }
                             box.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => gevent.Value = box.SelectedItem!.ToString()!);
+                            PropertyInspector.Controls.Add(box, GeventPropertyCounter++, 1);
                         }
 
                         break;
@@ -4226,7 +4226,13 @@ public partial class Main : Form
                         AutoSize = false,
                         Width = 200
                     };
-                    obj2.TextChanged += (_, args) => node.RawData = obj2.Text;
+                    obj2.TextChanged += (_, args) =>
+                    {
+                        Stories[node.FileName].StoryValues.Remove((string)node.RawData!);
+                        node.RawData = obj2.Text;
+                        node.ID = obj2.Text;
+                        Stories[node.FileName].StoryValues.Add((string)node.RawData!);
+                    };
                     obj2.TextChanged += (_, _) => { NodeLinker.UpdateLinks(node, node.FileName, nodes[SelectedCharacter]); Graph.Invalidate(); };
                     PropertyInspector.Controls.Add(obj2);
                 }
@@ -4550,6 +4556,19 @@ public partial class Main : Form
             case NodeType.ItemGroupBehaviour: //this one has no data on itself, only criteria and events
             case NodeType.ItemGroupInteraction: //this one has no data on itself, only criteria and events
             case NodeType.ItemInteraction: //this one has no data on itself, only criteria and events
+            {
+                PropertyInspector.RowCount = 1;
+                PropertyInspector.ColumnCount = 4;
+                Label label = GetLabel("Editor not yet implemented", ContentAlignment.TopLeft);
+                PropertyInspector.Controls.Add(label);
+                label = GetLabel(node.Type.ToString(), ContentAlignment.TopCenter);
+                PropertyInspector.Controls.Add(label);
+                label = GetLabel(node.ID, ContentAlignment.TopCenter);
+                PropertyInspector.Controls.Add(label);
+                label = GetLabel(node.Text, ContentAlignment.TopCenter);
+                PropertyInspector.Controls.Add(label);
+                break;
+            }
             case NodeType.State: //generated
             case NodeType.Property: //generated
             case NodeType.Social: //generated
@@ -4562,8 +4581,10 @@ public partial class Main : Form
             default:
             {
                 PropertyInspector.RowCount = 1;
-                PropertyInspector.ColumnCount = 3;
-                Label label = GetLabel(node.Type.ToString(), ContentAlignment.TopCenter);
+                PropertyInspector.ColumnCount = 4;
+                Label label = GetLabel("Generated node, no use for an editor", ContentAlignment.TopLeft);
+                PropertyInspector.Controls.Add(label);
+                label = GetLabel(node.Type.ToString(), ContentAlignment.TopCenter);
                 PropertyInspector.Controls.Add(label);
                 label = GetLabel(node.ID, ContentAlignment.TopCenter);
                 PropertyInspector.Controls.Add(label);
@@ -5680,34 +5701,46 @@ public partial class Main : Form
     private void PullChildsClose(object sender, EventArgs e)
     {
         //clickednode is set when this is called
-        var childs = nodes[SelectedCharacter].Childs(SelectedNode);
+        var Node = SelectedNode;
+        PullChildsClose(Node);
+
+        CenterAndSelectNode(Node, 0.3f);
+        Graph.Invalidate();
+    }
+
+    internal static void PullChildsClose(Node Node)
+    {
+        var childs = nodes[SelectedCharacter].Childs(Node);
 
         for (int i = 0; i < childs.Count; i++)
         {
-            var newPos = SelectedNode.Position + new SizeF(scaleX, (i - (childs.Count / 2)) * scaleY);
-            ShoveNodesToRight(childs[i], newPos);
+            var newPos = Node.Position + new SizeF(scaleX, (i - (childs.Count / 2)) * scaleY);
+            Instance.ShoveNodesToRight(childs[i], newPos);
 
             childs[i].Position = newPos;
         }
-
-        CenterAndSelectNode(SelectedNode, 0.3f);
-        Graph.Invalidate();
     }
 
     private void PullParentsClose(object sender, EventArgs e)
     {
         //clickednode is set when this is called
-        var parents = nodes[SelectedCharacter].Parents(SelectedNode);
+        var Node = SelectedNode;
+        PullParensClose(Node);
+
+        CenterAndSelectNode(Node, 0.3f);
+        Graph.Invalidate();
+    }
+
+    internal static void PullParensClose(Node Node)
+    {
+        var parents = nodes[SelectedCharacter].Parents(Node);
 
         for (int i = 0; i < parents.Count; i++)
         {
-            var newPos = SelectedNode.Position - new SizeF(scaleX, (i - (parents.Count / 2)) * scaleY);
-            ShoveNodesToLeft(parents[i], newPos);
+            var newPos = Node.Position - new SizeF(scaleX, (i - (parents.Count / 2)) * scaleY);
+            Instance.ShoveNodesToLeft(parents[i], newPos);
             parents[i].Position = newPos;
         }
-
-        CenterAndSelectNode(SelectedNode, 0.3f);
-        Graph.Invalidate();
     }
 
     private void ShoveNodesToLeft(Node nodeToPlace, PointF newPos)

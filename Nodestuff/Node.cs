@@ -459,7 +459,7 @@ namespace CCSC.Nodestuff
             }
         }
 
-        public void DupeToOtherSorting(string filename)
+        public bool DupeToOtherSorting(string filename)
         {
             int i = Main.FileIndex(filename);
             if (Positions.TryAdd(i, default))
@@ -470,7 +470,9 @@ namespace CCSC.Nodestuff
                 }
 
                 Main.SetNodePos(this, i);
+                return true;
             }
+            return false;
         }
 
         public void RemoveFromSorting(int filename)

@@ -43,7 +43,7 @@
             label1.Name = "label1";
             label1.Size = new Size(446, 56);
             label1.TabIndex = 0;
-            label1.Text = "Your changes may have not been saved, do you want to save now?";
+            label1.Text = "Your changes may have not been saved, do you want to save now?\r\nGameEvents not connected to an Eventtrigger, Dialogue or similar will be deleted!";
             label1.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // SaveAll

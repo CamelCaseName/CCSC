@@ -304,13 +304,11 @@ namespace CCSC.Nodestuff
 
         public static void GetQuests(CharacterStory story, NodeStore nodes)
         {
-            var questRoot = new Node(story.CharacterName + "'s Quests", NodeType.Quest, story.CharacterName + "'s Quests", story.CharacterName!) { };
-            nodes.Add(questRoot);
             foreach (Quest quest in story.Quests ?? [])
             {
                 var nodeQuest = new Node(quest.ID ?? string.Empty, NodeType.Quest, quest.Name ?? string.Empty, story.CharacterName!) { RawData = quest };
 
-                nodes.AddChild(questRoot, nodeQuest);
+                nodes.Add(nodeQuest);
                 //Add details
                 if (quest.Details?.Length > 0)
                 {
@@ -353,11 +351,6 @@ namespace CCSC.Nodestuff
 
         public static void GetValues(CharacterStory story, NodeStore nodes)
         {
-            var ValueStore = new Node(story.CharacterName + "'s Values", NodeType.Value, story.CharacterName + "'s Values", story.CharacterName!)
-            {
-                RawData = story.StoryValues
-            };
-            nodes.Add(ValueStore);
             foreach (string value in story.StoryValues ?? [])
             {
                 if (value == string.Empty)
@@ -366,19 +359,17 @@ namespace CCSC.Nodestuff
                 }
                 //add items to list
                 var nodeValue = new Node(value!, NodeType.Value, ", referenced values: ", story.CharacterName!) { RawData = value };
-                nodes.AddChild(ValueStore, nodeValue);
+                nodes.Add(nodeValue);
             }
         }
 
         public static void GetValues(MainStory story, NodeStore nodes)
         {
-            var ValueStore = new Node("Player Values", NodeType.Value, "Player Values", Main.Player) { RawData = story.PlayerValues };
-            nodes.Add(ValueStore);
             foreach (string value in story.PlayerValues ?? [])
             {
                 //add items to list
                 var nodeValue = new Node(value, NodeType.Value, ", referenced values: ", Main.Player) { RawData = value };
-                nodes.AddChild(ValueStore, nodeValue);
+                nodes.Add(nodeValue);
             }
         }
     }
