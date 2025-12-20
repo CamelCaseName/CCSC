@@ -265,8 +265,8 @@ public partial class Main : Form
     public void HandleKeyBoard(object? sender, KeyEventArgs e)
     {
         //get the shift key state so we can determine later if we want to redraw the tree on node selection or not
-        IsShiftPressed = e.KeyData == (Keys.ShiftKey | Keys.Shift);
-        IsCtrlPressed = e.KeyData == (Keys.Control | Keys.ControlKey);
+        IsShiftPressed = e.KeyData.HasFlag(Keys.ShiftKey) || e.KeyData.HasFlag(Keys.Shift);
+        IsCtrlPressed = e.KeyData.HasFlag(Keys.Control) || e.KeyData.HasFlag(Keys.ControlKey);
 
         if (selected.Count > 0)
         {
@@ -286,7 +286,7 @@ public partial class Main : Form
             adding = false;
         }
 
-        if (e.KeyData == Keys.Space && !NodeSpawnBox.Enabled)
+        if (e.KeyData.HasFlag(Keys.Space) && !NodeSpawnBox.Enabled)
         {
             if (ActiveForm is null)
             {
@@ -299,7 +299,7 @@ public partial class Main : Form
                 ShowNodeSpawnBox();
             }
         }
-        else if (e.KeyData == Keys.Escape)
+        else if (e.KeyData.HasFlag(Keys.Escape))
         {
             NodeSpawnBox.Enabled = false;
             NodeSpawnBox.Visible = false;
@@ -314,10 +314,14 @@ public partial class Main : Form
                 PropertyInspector.Controls.Clear();
             }
         }
-        else if (e.KeyData == Keys.Delete)
+        else if (e.KeyData.HasFlag(Keys.Delete))
         {
             if (Graph.Focused)
             {
+                if (selected.Count > 0)
+                {
+
+                }
                 TryDeleteNode();
             }
             else if (StoryTree.Focused)
@@ -325,9 +329,24 @@ public partial class Main : Form
                 TryDeleteStory();
             }
         }
-        else if (e.KeyData == Keys.F && IsCtrlPressed)
+        else if (e.KeyData.HasFlag(Keys.F) && IsCtrlPressed)
         {
             StartSearch();
+        }
+        else if (e.KeyData.HasFlag(Keys.S) && IsCtrlPressed)
+        {
+            _ = SaveAll();
+        }
+        else if (e.KeyData.HasFlag(Keys.H) && IsCtrlPressed)
+        {
+            NodeGraphFilter.Instance.Visible = !NodeGraphFilter.Instance.Visible;
+        }
+        else if (e.KeyData.HasFlag(Keys.A) && IsCtrlPressed)
+        {
+            selected.Clear();
+            SelectedNodeOffsets.Clear();
+            selected.AddRange(nodes[SelectedCharacter].Nodes);
+            Graph.Invalidate();
         }
     }
 
@@ -413,7 +432,7 @@ public partial class Main : Form
         }
 
         //SystemSounds.Question.Play();
-        if (MessageBox.Show("Delete \"" + removedNode.Text[..Math.Min(removedNode.Text.Length, 20)] + "[...]\"?", "Delete for real?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+        if (MessageBox.Show("Delete \"" + removedNode.Text[..Math.Min(removedNode.Text.Length, 20)] + "[...]\"?", "Delete for real? No undo!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
         {
             PropertyInspector.Controls.Clear();
             if (nodeToLinkFrom == removedNode)
@@ -431,6 +450,13 @@ public partial class Main : Form
             if (movedNode == removedNode)
             {
                 movedNode = Node.NullNode;
+            }
+
+            var maybeIndex = selected.IndexOf(removedNode);
+            if (maybeIndex >= 0 && maybeIndex < selected.Count)
+            {
+                SelectedNodeOffsets.RemoveAt(maybeIndex);
+                selected.RemoveAt(maybeIndex);
             }
 
             var family = nodes[SelectedCharacter][removedNode];
@@ -2087,18 +2113,24 @@ public partial class Main : Form
 
     private void Save_Click(object sender, EventArgs e)
     {
+        _ = SaveAll();
+    }
+
+    private bool SaveAll()
+    {
         if (Story is null)
         {
-            return;
+            return false;
         }
 
         if (!ExportAllFiles())
         {
-            return;
+            return false;
         }
         SafeSavePositions();
 
         MessageBox.Show("Saved files!");
+        return true;
     }
 
     private bool ExportAllFiles()
@@ -3302,7 +3334,7 @@ public partial class Main : Form
 
                             Label dialogLabel = GetLabel(Stories[gevent.Character].Dialogues!.Find((dialog) => dialog.ID.ToString() == box.SelectedItem?.ToString())?.Text ?? "No text on dialogue");
                             dialogLabel.MaximumSize = new Size(PropertyInspector.Width - 300, 50);
-                            PropertyInspector.Controls.Add(dialogLabel,GeventPropertyCounter++, 1);
+                            PropertyInspector.Controls.Add(dialogLabel, GeventPropertyCounter++, 1);
 
                         }
 

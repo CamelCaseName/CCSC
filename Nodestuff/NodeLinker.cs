@@ -26,6 +26,7 @@ namespace CCSC.Nodestuff
         private static void AllLink(Node source, Node destination, bool link)
         {
             string Add = link ? "Add " : "Remove ";
+            string Lead = link ? "Lead " : "No longer lead ";
             if (source.DataType == typeof(Criterion))
             {
                 if (destination.DataType == typeof(ItemAction))
@@ -242,7 +243,7 @@ namespace CCSC.Nodestuff
                 }
                 else if (destination.DataType == typeof(Dialogue))
                 {
-                    var result = MessageBox.Show("Add as StartEvent? Hit yes for StartEvent, no for CloseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    var result = MessageBox.Show(Add + " as StartEvent? Hit yes for StartEvent, no for CloseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                     if (result == DialogResult.Yes)
                     {
@@ -733,7 +734,7 @@ namespace CCSC.Nodestuff
                 }
                 else if (destination.DataType == typeof(Dialogue))
                 {
-                    var result = MessageBox.Show("Lead to this dialogue from the response? Hit yes for that, no to add the response as a normal response to this dialogue", "Select Response place", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    var result = MessageBox.Show(Lead + " to this dialogue from the response? Hit yes for that, no to " + Add + " the response as a normal response to this dialogue", "Select Response place", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                     if (result == DialogResult.Yes)
                     {
@@ -790,7 +791,7 @@ namespace CCSC.Nodestuff
                 }
                 else if (destination.DataType == typeof(Response))
                 {
-                    var result = MessageBox.Show(Add + "as a response? Hit yes for Response, no for the response leading to this dialogue", "Select Response place", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    var result = MessageBox.Show(Add + "as a response? Hit yes for Response, no for the response " + Lead + "ing to this dialogue", "Select Response place", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                     if (result == DialogResult.Yes)
                     {
