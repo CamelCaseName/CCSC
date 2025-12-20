@@ -1255,7 +1255,6 @@ namespace CCSC.StoryItems
                     },
                     ]
             });
-
         }
         public MainStory() { }
         public bool AllowPlayerFemale { get => allowPlayerFemale; set { OnBeforeChange?.Invoke(this); allowPlayerFemale = value; OnAfterChange?.Invoke(this); } }

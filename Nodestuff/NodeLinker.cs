@@ -23,7 +23,7 @@ namespace CCSC.Nodestuff
         private static bool wasDuped = false;
         private static Node dupedResult = Node.NullNode;
 
-        private static void AllLink(Node source, Node destination, bool link)
+        private static void AllLink(Node source, Node destination, bool link, bool ignoreWarnings = false)
         {
             string Add = link ? "Add " : "Remove ";
             string Lead = link ? "Lead " : "No longer lead ";
@@ -243,9 +243,7 @@ namespace CCSC.Nodestuff
                 }
                 else if (destination.DataType == typeof(Dialogue))
                 {
-                    var result = MessageBox.Show(Add + " as StartEvent? Hit yes for StartEvent, no for CloseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
+                    if (ignoreWarnings)
                     {
                         if (link)
                         {
@@ -255,9 +253,6 @@ namespace CCSC.Nodestuff
                         {
                             destination.Data<Dialogue>()!.StartEvents!.Remove(source.Data<GameEvent>()!);
                         }
-                    }
-                    else if (result == DialogResult.No)
-                    {
                         if (link)
                         {
                             destination.Data<Dialogue>()!.CloseEvents!.Add(source.Data<GameEvent>()!);
@@ -265,6 +260,33 @@ namespace CCSC.Nodestuff
                         else
                         {
                             destination.Data<Dialogue>()!.CloseEvents!.Remove(source.Data<GameEvent>()!);
+                        }
+                    }
+                    else
+                    {
+                        var result = MessageBox.Show(Add + " as StartEvent? Hit yes for StartEvent, no for CloseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            if (link)
+                            {
+                                destination.Data<Dialogue>()!.StartEvents!.Add(source.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                destination.Data<Dialogue>()!.StartEvents!.Remove(source.Data<GameEvent>()!);
+                            }
+                        }
+                        else if (result == DialogResult.No)
+                        {
+                            if (link)
+                            {
+                                destination.Data<Dialogue>()!.CloseEvents!.Add(source.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                destination.Data<Dialogue>()!.CloseEvents!.Remove(source.Data<GameEvent>()!);
+                            }
                         }
                     }
                 }
@@ -281,9 +303,7 @@ namespace CCSC.Nodestuff
                 }
                 else if (destination.DataType == typeof(ItemInteraction))
                 {
-                    var result = MessageBox.Show(Add + "as OnAcceptEvent? Hit yes for OnAcceptEvent, no for OnRefuseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
+                    if (ignoreWarnings)
                     {
                         if (link)
                         {
@@ -293,9 +313,6 @@ namespace CCSC.Nodestuff
                         {
                             destination.Data<ItemInteraction>()!.OnAcceptEvents!.Remove(source.Data<GameEvent>()!);
                         }
-                    }
-                    else if (result == DialogResult.No)
-                    {
                         if (link)
                         {
                             destination.Data<ItemInteraction>()!.OnRefuseEvents!.Add(source.Data<GameEvent>()!);
@@ -305,12 +322,37 @@ namespace CCSC.Nodestuff
                             destination.Data<ItemInteraction>()!.OnRefuseEvents!.Remove(source.Data<GameEvent>()!);
                         }
                     }
+                    else
+                    {
+                        var result = MessageBox.Show(Add + "as OnAcceptEvent? Hit yes for OnAcceptEvent, no for OnRefuseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            if (link)
+                            {
+                                destination.Data<ItemInteraction>()!.OnAcceptEvents!.Add(source.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                destination.Data<ItemInteraction>()!.OnAcceptEvents!.Remove(source.Data<GameEvent>()!);
+                            }
+                        }
+                        else if (result == DialogResult.No)
+                        {
+                            if (link)
+                            {
+                                destination.Data<ItemInteraction>()!.OnRefuseEvents!.Add(source.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                destination.Data<ItemInteraction>()!.OnRefuseEvents!.Remove(source.Data<GameEvent>()!);
+                            }
+                        }
+                    }
                 }
                 else if (destination.DataType == typeof(ItemGroupInteraction))
                 {
-                    var result = MessageBox.Show(Add + "as OnAcceptEvent? Hit yes for OnAcceptEvent, no for OnRefuseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
+                    if (ignoreWarnings)
                     {
                         if (link)
                         {
@@ -320,9 +362,6 @@ namespace CCSC.Nodestuff
                         {
                             destination.Data<ItemGroupInteraction>()!.OnAcceptEvents!.Remove(source.Data<GameEvent>()!);
                         }
-                    }
-                    else if (result == DialogResult.No)
-                    {
                         if (link)
                         {
                             destination.Data<ItemGroupInteraction>()!.OnRefuseEvents!.Add(source.Data<GameEvent>()!);
@@ -330,6 +369,33 @@ namespace CCSC.Nodestuff
                         else
                         {
                             destination.Data<ItemGroupInteraction>()!.OnRefuseEvents!.Remove(source.Data<GameEvent>()!);
+                        }
+                    }
+                    else
+                    {
+                        var result = MessageBox.Show(Add + "as OnAcceptEvent? Hit yes for OnAcceptEvent, no for OnRefuseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            if (link)
+                            {
+                                destination.Data<ItemGroupInteraction>()!.OnAcceptEvents!.Add(source.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                destination.Data<ItemGroupInteraction>()!.OnAcceptEvents!.Remove(source.Data<GameEvent>()!);
+                            }
+                        }
+                        else if (result == DialogResult.No)
+                        {
+                            if (link)
+                            {
+                                destination.Data<ItemGroupInteraction>()!.OnRefuseEvents!.Add(source.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                destination.Data<ItemGroupInteraction>()!.OnRefuseEvents!.Remove(source.Data<GameEvent>()!);
+                            }
                         }
                     }
                 }
@@ -734,9 +800,7 @@ namespace CCSC.Nodestuff
                 }
                 else if (destination.DataType == typeof(Dialogue))
                 {
-                    var result = MessageBox.Show(Lead + " to this dialogue from the response? Hit yes for that, no to " + Add + " the response as a normal response to this dialogue", "Select Response place", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
+                    if (ignoreWarnings)
                     {
                         if (link)
                         {
@@ -746,9 +810,6 @@ namespace CCSC.Nodestuff
                         {
                             source.Data<Response>()!.Next = 0;
                         }
-                    }
-                    else if (result == DialogResult.No)
-                    {
                         if (link)
                         {
                             destination.Data<Dialogue>()!.Responses.Add(source.Data<Response>()!);
@@ -758,15 +819,40 @@ namespace CCSC.Nodestuff
                             destination.Data<Dialogue>()!.Responses.Remove(source.Data<Response>()!);
                         }
                     }
+                    else
+                    {
+                        var result = MessageBox.Show(Lead + " to this dialogue from the response? Hit yes for that, no to " + Add + " the response as a normal response to this dialogue", "Select Response place", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            if (link)
+                            {
+                                source.Data<Response>()!.Next = destination.Data<Dialogue>()!.ID;
+                            }
+                            else
+                            {
+                                source.Data<Response>()!.Next = 0;
+                            }
+                        }
+                        else if (result == DialogResult.No)
+                        {
+                            if (link)
+                            {
+                                destination.Data<Dialogue>()!.Responses.Add(source.Data<Response>()!);
+                            }
+                            else
+                            {
+                                destination.Data<Dialogue>()!.Responses.Remove(source.Data<Response>()!);
+                            }
+                        }
+                    }
                 }
             }
             else if (source.DataType == typeof(Dialogue))
             {
                 if (destination.DataType == typeof(GameEvent))
                 {
-                    var result = MessageBox.Show(Add + "as StartEvent? Hit yes for StartEvent, no for CloseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
+                    if (ignoreWarnings)
                     {
                         if (link)
                         {
@@ -776,9 +862,6 @@ namespace CCSC.Nodestuff
                         {
                             source.Data<Dialogue>()!.StartEvents!.Remove(destination.Data<GameEvent>()!);
                         }
-                    }
-                    else if (result == DialogResult.No)
-                    {
                         if (link)
                         {
                             source.Data<Dialogue>()!.CloseEvents!.Add(destination.Data<GameEvent>()!);
@@ -788,12 +871,37 @@ namespace CCSC.Nodestuff
                             source.Data<Dialogue>()!.CloseEvents!.Remove(destination.Data<GameEvent>()!);
                         }
                     }
+                    else
+                    {
+                        var result = MessageBox.Show(Add + "as StartEvent? Hit yes for StartEvent, no for CloseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            if (link)
+                            {
+                                source.Data<Dialogue>()!.StartEvents!.Add(destination.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                source.Data<Dialogue>()!.StartEvents!.Remove(destination.Data<GameEvent>()!);
+                            }
+                        }
+                        else if (result == DialogResult.No)
+                        {
+                            if (link)
+                            {
+                                source.Data<Dialogue>()!.CloseEvents!.Add(destination.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                source.Data<Dialogue>()!.CloseEvents!.Remove(destination.Data<GameEvent>()!);
+                            }
+                        }
+                    }
                 }
                 else if (destination.DataType == typeof(Response))
                 {
-                    var result = MessageBox.Show(Add + "as a response? Hit yes for Response, no for the response " + Lead + "ing to this dialogue", "Select Response place", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
+                    if (ignoreWarnings)
                     {
                         if (link)
                         {
@@ -803,9 +911,6 @@ namespace CCSC.Nodestuff
                         {
                             source.Data<Dialogue>()!.Responses.Remove(destination.Data<Response>()!);
                         }
-                    }
-                    else if (result == DialogResult.No)
-                    {
                         if (link)
                         {
                             destination.Data<Response>()!.Next = source.Data<Dialogue>()!.ID;
@@ -813,6 +918,33 @@ namespace CCSC.Nodestuff
                         else
                         {
                             destination.Data<Response>()!.Next = 0;
+                        }
+                    }
+                    else
+                    {
+                        var result = MessageBox.Show(Add + "as a response? Hit yes for Response, no for the response " + Lead + "ing to this dialogue", "Select Response place", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            if (link)
+                            {
+                                source.Data<Dialogue>()!.Responses.Add(destination.Data<Response>()!);
+                            }
+                            else
+                            {
+                                source.Data<Dialogue>()!.Responses.Remove(destination.Data<Response>()!);
+                            }
+                        }
+                        else if (result == DialogResult.No)
+                        {
+                            if (link)
+                            {
+                                destination.Data<Response>()!.Next = source.Data<Dialogue>()!.ID;
+                            }
+                            else
+                            {
+                                destination.Data<Response>()!.Next = 0;
+                            }
                         }
                     }
                 }
@@ -989,9 +1121,7 @@ namespace CCSC.Nodestuff
                 }
                 else if (destination.DataType == typeof(GameEvent))
                 {
-                    var result = MessageBox.Show(Add + "as OnAcceptEvent? Hit yes for OnAcceptEvent, no for OnRefuseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
+                    if (ignoreWarnings)
                     {
                         if (link)
                         {
@@ -1001,9 +1131,6 @@ namespace CCSC.Nodestuff
                         {
                             source.Data<ItemInteraction>()!.OnAcceptEvents!.Remove(source.Data<GameEvent>()!);
                         }
-                    }
-                    else if (result == DialogResult.No)
-                    {
                         if (link)
                         {
                             source.Data<ItemInteraction>()!.OnRefuseEvents!.Add(source.Data<GameEvent>()!);
@@ -1011,6 +1138,33 @@ namespace CCSC.Nodestuff
                         else
                         {
                             source.Data<ItemInteraction>()!.OnRefuseEvents!.Remove(source.Data<GameEvent>()!);
+                        }
+                    }
+                    else
+                    {
+                        var result = MessageBox.Show(Add + "as OnAcceptEvent? Hit yes for OnAcceptEvent, no for OnRefuseEvent", "Select Event Type", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            if (link)
+                            {
+                                source.Data<ItemInteraction>()!.OnAcceptEvents!.Add(source.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                source.Data<ItemInteraction>()!.OnAcceptEvents!.Remove(source.Data<GameEvent>()!);
+                            }
+                        }
+                        else if (result == DialogResult.No)
+                        {
+                            if (link)
+                            {
+                                source.Data<ItemInteraction>()!.OnRefuseEvents!.Add(source.Data<GameEvent>()!);
+                            }
+                            else
+                            {
+                                source.Data<ItemInteraction>()!.OnRefuseEvents!.Remove(source.Data<GameEvent>()!);
+                            }
                         }
                     }
                 }
@@ -1118,7 +1272,7 @@ namespace CCSC.Nodestuff
             return newConnections != connections;
         }
 
-        public static void Unlink(NodeStore nodes, Node removeFrom, Node removeThis)
+        public static void Unlink(NodeStore nodes, Node removeFrom, Node removeThis, bool ignoreWarnings = false)
         {
             if (removeThis.DataType == typeof(MissingReferenceInfo))
             {
@@ -1129,7 +1283,7 @@ namespace CCSC.Nodestuff
                 return;
             }
 
-            AllLink(removeFrom, removeThis, false);
+            AllLink(removeFrom, removeThis, false, ignoreWarnings);
 
             UpdateLinks(removeFrom, Main.SelectedCharacter, nodes);
             UpdateLinks(removeThis, Main.SelectedCharacter, nodes);

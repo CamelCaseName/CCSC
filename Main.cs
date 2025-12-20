@@ -5,6 +5,7 @@ using CCSC.Nodestuff;
 using CCSC.Search;
 using CCSC.StoryItems;
 using Silk.NET.Core.Win32Extras;
+using Silk.NET.Direct2D;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -286,7 +287,7 @@ public partial class Main : Form
             adding = false;
         }
 
-        if (e.KeyData.HasFlag(Keys.Space) && !NodeSpawnBox.Enabled)
+        if (e.KeyData == Keys.Space && !NodeSpawnBox.Enabled)
         {
             if (ActiveForm is null)
             {
@@ -299,7 +300,7 @@ public partial class Main : Form
                 ShowNodeSpawnBox();
             }
         }
-        else if (e.KeyData.HasFlag(Keys.Escape))
+        else if (e.KeyData == Keys.Escape)
         {
             NodeSpawnBox.Enabled = false;
             NodeSpawnBox.Visible = false;
@@ -314,15 +315,24 @@ public partial class Main : Form
                 PropertyInspector.Controls.Clear();
             }
         }
-        else if (e.KeyData.HasFlag(Keys.Delete))
+        else if (e.KeyData == Keys.Delete)
         {
             if (Graph.Focused)
             {
                 if (selected.Count > 0)
                 {
-
+                    var delete = MessageBox.Show("Delete all " + selected.Count.ToString() + " selected nodes? No undo!", "Delete for real? No undo!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes;
+                    MessageBox.Show("Nodes of the following types won't necessarily be deleted: Social, Personality, Clothing, Cutscene, Door, Inventory, Pose, State", "Some cannot be deleted", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (delete)
+                    {
+                        List<Node> toDelete = [.. selected];
+                        foreach (var node in toDelete)
+                        {
+                            TryDeleteNode(node, true);
+                        }
+                        selected.Clear();
+                    }
                 }
-                TryDeleteNode();
             }
             else if (StoryTree.Focused)
             {
@@ -407,9 +417,9 @@ public partial class Main : Form
         return Files.IndexOf(file);
     }
 
-    private void TryDeleteNode()
+    private void TryDeleteNode(Node removedNode = null!, bool ignoreWarnings = false)
     {
-        Node removedNode = Node.NullNode;
+        removedNode ??= Node.NullNode;
         if (highlightNode != Node.NullNode)
         {
             removedNode = highlightNode;
@@ -427,12 +437,20 @@ public partial class Main : Form
         if (removedNode.Type is NodeType.Social or NodeType.Personality or NodeType.Clothing or NodeType.Cutscene or NodeType.Door or NodeType.Inventory or NodeType.Pose or NodeType.State)
         {
             //cant delete these types of nodes reasonably
-            MessageBox.Show("Can't delete Node of type " + removedNode.Type.ToString(), "Can't Delete!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (!ignoreWarnings)
+            {
+                MessageBox.Show("Can't delete Node of type " + removedNode.Type.ToString(), "Can't Delete!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             return;
         }
 
         //SystemSounds.Question.Play();
-        if (MessageBox.Show("Delete \"" + removedNode.Text[..Math.Min(removedNode.Text.Length, 20)] + "[...]\"?", "Delete for real? No undo!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+        bool delete = ignoreWarnings;
+        if (!ignoreWarnings)
+        {
+            delete = MessageBox.Show("Delete \"" + removedNode.Text[..Math.Min(removedNode.Text.Length, 20)] + "[...]\"? No undo!", "Delete for real? No undo!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes;
+        }
+        if (delete)
         {
             PropertyInspector.Controls.Clear();
             if (nodeToLinkFrom == removedNode)
@@ -455,8 +473,11 @@ public partial class Main : Form
             var maybeIndex = selected.IndexOf(removedNode);
             if (maybeIndex >= 0 && maybeIndex < selected.Count)
             {
-                SelectedNodeOffsets.RemoveAt(maybeIndex);
                 selected.RemoveAt(maybeIndex);
+            }
+            if (maybeIndex >= 0 && maybeIndex < SelectedNodeOffsets.Count)
+            {
+                SelectedNodeOffsets.RemoveAt(maybeIndex);
             }
 
             var family = nodes[SelectedCharacter][removedNode];
@@ -465,11 +486,11 @@ public partial class Main : Form
 
             foreach (var child in childs)
             {
-                NodeLinker.Unlink(nodes[SelectedCharacter], removedNode, child);
+                NodeLinker.Unlink(nodes[SelectedCharacter], removedNode, child, true);
             }
             foreach (var parent in parents)
             {
-                NodeLinker.Unlink(nodes[SelectedCharacter], parent, removedNode);
+                NodeLinker.Unlink(nodes[SelectedCharacter], parent, removedNode, true);
             }
             nodes[SelectedCharacter].Remove(removedNode);
             removedNode.RemoveFromSorting(SelectedFile);
@@ -1308,10 +1329,18 @@ public partial class Main : Form
         AddStory();
         if (Story is not null)
         {
-            foreach (var character in Enum.GetNames<StoryCharacters>())
-            {
-                AddCharacterStory(character);
-            }
+            AddCharacterStory(Characters.Amy.ToString());
+            AddCharacterStory(Characters.Ashley.ToString());
+            AddCharacterStory(Characters.Brittney.ToString());
+            AddCharacterStory(Characters.Derek.ToString());
+            AddCharacterStory(Characters.Frank.ToString());
+            AddCharacterStory(Characters.Katherine.ToString());
+            AddCharacterStory(Characters.Leah.ToString());
+            AddCharacterStory(Characters.Madison.ToString());
+            AddCharacterStory(Characters.Patrick.ToString());
+            AddCharacterStory(Characters.Rachael.ToString());
+            AddCharacterStory(Characters.Stephanie.ToString());
+            AddCharacterStory(Characters.Vickie.ToString());
             SetupStartPositions();
         }
     }

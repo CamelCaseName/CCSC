@@ -37,6 +37,10 @@ Everything that could be represented by node connections is.
 * space bar to start spawning nodes, or context menu with right click. if you add new nodes from these menus and already have a node selected, it will only allow you to add compatible nodes, like add a response to a dialogue but not a cutscene. it will also automatically link those
 * hit esc to deselect nodes or click in empty space
 * hit del to remove a selected node
+* ctrl+f to open search
+* ctrl+s to save
+* ctrl+a to select all
+* ctrl+h to open filter view
 
 # search and filters:
 * clicking "Adjust Filters" lets you adjust what type of nodes you see. everything that is hidden cannot be selected, moved or interacted with directly. useful for finding certain things or not getting overwhelmed by Items or the like you may not be interested in
