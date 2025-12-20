@@ -13,6 +13,7 @@ using System.Media;
 using System.Numerics;
 using System.Text.Json;
 using static CCSC.StoryItems.StoryEnums;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using Enum = System.Enum;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -3293,10 +3294,16 @@ public partial class Main : Form
                             }
                             foreach (var item in Stories[gevent.Character].Dialogues)
                             {
-                                box.Items.Add(item.ID);
+                                box.Items.Add(item.ID.ToString());
                             }
+                            box.SelectedItem = gevent.Value;
                             box.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => gevent.Value = box.SelectedItem!.ToString()!);
                             PropertyInspector.Controls.Add(box, GeventPropertyCounter++, 1);
+
+                            Label dialogLabel = GetLabel(Stories[gevent.Character].Dialogues!.Find((dialog) => dialog.ID.ToString() == box.SelectedItem?.ToString())?.Text ?? "No text on dialogue");
+                            dialogLabel.MaximumSize = new Size(PropertyInspector.Width - 300, 50);
+                            PropertyInspector.Controls.Add(dialogLabel,GeventPropertyCounter++, 1);
+
                         }
 
                         break;

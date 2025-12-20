@@ -330,7 +330,9 @@ namespace CCSC.Direct2D
                 }
                 else
                 {
+#pragma warning disable CS0162 // Unreachable code detected, debug issue only
                     DrawNode(node, GetNodeColor(node.Type, false));
+#pragma warning restore CS0162 // Unreachable code detected
                 }
             }
         }

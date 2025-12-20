@@ -80,8 +80,8 @@ namespace CCSC.Nodestuff
                     nodes.AddChild(nodeDialogue, nodeAlternateText);
                 }
 
-                //some events in here may have strings that are connected to the dialogue closing
-                nodeDialogue.AddEvents(dialogue.CloseEvents ?? [], nodes);
+                //add the starting events
+                nodeDialogue.AddEvents(dialogue.StartEvents ?? [], nodes);
 
                 //add all responses as childs to this dialogue
                 foreach (Response response in dialogue.Responses ?? [])
@@ -101,8 +101,8 @@ namespace CCSC.Nodestuff
                     nodes.AddChild(nodeDialogue, nodeResponse);
                 }
 
-                //add the starting events
-                nodeDialogue.AddEvents(dialogue.StartEvents ?? [], nodes);
+                //some events in here may have strings that are connected to the dialogue closing
+                nodeDialogue.AddEvents(dialogue.CloseEvents ?? [], nodes);
             }
             responseDialogueLinks.Clear();
         }
@@ -113,7 +113,7 @@ namespace CCSC.Nodestuff
             nodes.Add(nodeEvents);
             foreach (GameEvent _event in story.GameStartEvents ?? [])
             {
-                var nodeEvent = new Node(_event.Id ?? "none", NodeType.GameEvent, _event.Value ?? "none", Main.Player) { RawData = _event, FileName = Main.Player };
+                var nodeEvent = new Node(_event.Id ?? "none", NodeType.GameEvent, _event.Value ?? "none", Main.Player) { RawData = _event };
 
                 nodeEvent.AddCriteria(_event.Criteria ?? [], nodes);
 
@@ -291,7 +291,7 @@ namespace CCSC.Nodestuff
             foreach (EventTrigger playerReaction in story.PlayerReactions ?? [])
             {
                 //add items to list
-                var nodeReaction = new Node(playerReaction.Id ?? string.Empty, NodeType.EventTrigger, playerReaction.Name ?? string.Empty, Main.Player) { RawData = playerReaction, FileName = Main.Player };
+                var nodeReaction = new Node(playerReaction.Id ?? string.Empty, NodeType.EventTrigger, playerReaction.Name ?? string.Empty, Main.Player) { RawData = playerReaction };
 
                 //get actions for item
                 nodeReaction.AddEvents(playerReaction.Events ?? [], nodes);

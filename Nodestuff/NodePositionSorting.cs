@@ -108,6 +108,8 @@
             int scaledXRight = (int)((node.Position.X + node.Size.Width) / GridSize);
             int scaledYBottom = (int)((node.Position.Y + node.Size.Height) / GridSize);
 
+            TryFillListToSize(scaledXLeft, scaledYTop);
+            TryFillListToSize(scaledXRight, scaledYBottom);
             for (int x = scaledXLeft; x <= scaledXRight; x++)
             {
                 for (int y = scaledYTop; y <= scaledYBottom; y++)
@@ -132,6 +134,7 @@
             int scaledXRight = (int)((node.Position.X + node.Size.Width) / GridSize);
             int scaledYBottom = (int)((node.Position.Y + node.Size.Height) / GridSize);
 
+            TryFillListToSize(scaledXLeft, scaledYTop);
             TryFillListToSize(scaledXRight, scaledYBottom);
 
             for (int x = scaledXLeft; x <= scaledXRight; x++)

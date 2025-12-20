@@ -145,7 +145,7 @@ namespace CCSC.Nodestuff
                 return fileName;
             }
 
-            set
+            private set
             {
                 if (!AllowedFileNames.Contains(value))
                 {

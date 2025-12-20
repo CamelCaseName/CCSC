@@ -1166,7 +1166,7 @@ namespace CCSC.Nodestuff
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Debug.WriteLine("1169: " + ex.Message);
             }
 
             try
@@ -1183,7 +1183,7 @@ namespace CCSC.Nodestuff
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Debug.WriteLine("1186: " + ex.Message);
             }
 
             //merge doors with items if applicable
@@ -1228,14 +1228,14 @@ namespace CCSC.Nodestuff
             }
             var nodes = new List<Node>(store.Nodes);
 
-            AnalyzeAndConnectNode(store, node, nodes, true);
+            AnalyzeAndConnectNode(store, node, nodes, node.FileName == store.FileName);
             foreach (var child in childs)
             {
-                AnalyzeAndConnectNode(store, child, nodes, false);
+                AnalyzeAndConnectNode(store, child, nodes, child.FileName == store.FileName);
             }
             foreach (var parent in parents)
             {
-                AnalyzeAndConnectNode(store, parent, nodes, false);
+                AnalyzeAndConnectNode(store, parent, nodes, parent.FileName == store.FileName);
             }
             InterlinkFromFile(fileName, Main.nodes, false);
             Main.SelectedCharacter = lastSelected;
@@ -2295,6 +2295,11 @@ namespace CCSC.Nodestuff
                 }
                 case NodeType.Dialogue when (dialogue = node.Data<Dialogue>()!) is not null:
                 {
+                    foreach (var _event in dialogue.StartEvents)
+                    {
+                        HandleEvent(nodes, node, searchIn, _event, dupeTo);
+                    }
+
                     foreach (var resp in dialogue.Responses)
                     {
                         result = searchIn.Find((n) => n.Type == NodeType.Response && n.ID == resp.Id!);
@@ -2342,11 +2347,6 @@ namespace CCSC.Nodestuff
                             searchIn.Add(_node);
                             nodes.AddChild(node, _node);
                         }
-                    }
-
-                    foreach (var _event in dialogue.StartEvents)
-                    {
-                        HandleEvent(nodes, node, searchIn, _event, dupeTo);
                     }
 
                     foreach (var _event in dialogue.CloseEvents)
@@ -2927,11 +2927,17 @@ namespace CCSC.Nodestuff
                                 if (node.Type == NodeType.EventTrigger && node.DataType == typeof(EventTrigger) && duplicateNode.DataType == typeof(EventTrigger))
                                 {
                                     duplicateNode.Data<EventTrigger>()!.Id = Guid.NewGuid().ToString();
+                                    continue;
                                 }
-                                else
+                                else if (node.DataType == typeof(string))
                                 {
-                                    Debugger.Break();
+                                    if (node.Data<string>() == duplicateNode.Data<string>())
+                                    {
+                                        store.Replace(node, duplicateNode);
+                                        continue;
+                                    }
                                 }
+                                Debugger.Break();
                             }
                             continue;
                         }
@@ -3087,7 +3093,7 @@ namespace CCSC.Nodestuff
                     if (nodes.Nodes[i].FileName is ("" or Main.NoCharacter) || nodes.Nodes[i].FileName != story.CharacterName!)
                     {
                         Debugger.Break();
-                        nodes.Nodes[i].FileName = story.CharacterName!;
+                        //nodes.Nodes[i].FileName = story.CharacterName!;
                     }
                 }
                 Main.SelectedCharacter = last;
@@ -3120,7 +3126,8 @@ namespace CCSC.Nodestuff
                 {
                     if (nodes.Nodes[i].FileName is ("" or Main.NoCharacter))
                     {
-                        nodes.Nodes[i].FileName = Main.Player;
+                        Debugger.Break();
+                        //nodes.Nodes[i].FileName = Main.Player;
                     }
                 }
                 Main.SelectedCharacter = last;
