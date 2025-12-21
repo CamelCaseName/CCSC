@@ -154,6 +154,7 @@ public partial class Main : Form
     }
     private Node SelectedNode = null!;
     private int newValueCounter = 0;
+    private int newTriggerCounter;
 
     public static Node Selected => Instance.SelectedNode;
     public static Node Highlight => Instance.highlightNode;
@@ -175,6 +176,9 @@ public partial class Main : Form
     //todo add grouping
     //todo add comments
     //todo add charactergroups
+    //todo fix outfits
+    //todo fix characterfunctions
+    //todo fix itemfunctions
     //todo handle criteriagroups correctly
     //todo update for Office Party in time
     //########################################################
@@ -5659,7 +5663,7 @@ public partial class Main : Form
                 string id = Guid.NewGuid().ToString();
                 newNode = new Node(id, NodeType.EventTrigger, string.Empty, nodes[character].Positions, character)
                 {
-                    RawData = new EventTrigger() { Id = id },
+                    RawData = new EventTrigger() { Id = id, Name = "Eventtrigger" + newTriggerCounter++ },
                 };
                 if (character == Player)
                 {

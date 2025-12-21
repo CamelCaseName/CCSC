@@ -707,7 +707,7 @@ namespace CCSC.StoryItems
                         }
                         case GameEvents.Emote:
                         {
-                            return $"{EventType} {Character} {EEnum.Parse<GameMessageType>(Value)} {Value2}";
+                            return $"{EventType} {Character} {EEnum.Parse<Emotions>(Value)} {Value2}";
                         }
                         case GameEvents.EventTriggers:
                         {

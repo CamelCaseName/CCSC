@@ -2273,29 +2273,40 @@ namespace CCSC.Nodestuff
                         }
                         case GameEvents.Pose:
                         {
-                            result = Poses.Find((n) => n.Type == NodeType.Pose && n.ID == gameEvent.Value);
-                            if (result is not null)
+                            if (gameEvent.Option == (int)BoolCritera.True)
                             {
-                                if (dupeTo)
+                                result = Poses.Find((n) => n.Type == NodeType.Pose && n.ID == gameEvent.Value);
+                                if (result is not null)
                                 {
-                                    dupedResult = result;
-                                    wasDuped = result.DupeToOtherSorting(node.FileName);
-                                }
+                                    if (dupeTo)
+                                    {
+                                        dupedResult = result;
+                                        wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    }
 
-                                nodes.AddChild(node, result);
-                            }
-                            else if (dupeTo)
-                            {
-                                wasDuped = true;
-                                //create and add pose node, hasnt been referenced yet
-                                var pose = new Node(gameEvent.Value!, NodeType.Pose, "Pose number " + gameEvent.Value, Main.SelectedCharacter);
-                                Poses.Add(pose);
-                                nodes.AddChild(node, pose);
+                                    nodes.AddChild(node, result);
+                                }
+                                else if (dupeTo)
+                                {
+                                    wasDuped = true;
+                                    //create and add pose node, hasnt been referenced yet
+                                    var pose = new Node(gameEvent.Value!, NodeType.Pose, "Pose number " + gameEvent.Value, Main.SelectedCharacter);
+                                    Poses.Add(pose);
+                                    nodes.AddChild(node, pose);
+                                }
                             }
                             break;
                         }
                         case GameEvents.Quest:
                         {
+                            if(gameEvent.Value == IItem.hash || gameEvent.Value == string.Empty)
+                            {
+                                break;
+                            }
+                            if (gameEvent.Key == IItem.hash || gameEvent.Key == string.Empty)
+                            {
+                                break;
+                            }
                             result = searchIn.Find((n) => n.Type == NodeType.Quest && n.ID == gameEvent.Key);
                             if (result is not null)
                             {
