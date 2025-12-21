@@ -4,8 +4,6 @@ using CCSC.Glue;
 using CCSC.Nodestuff;
 using CCSC.Search;
 using CCSC.StoryItems;
-using Silk.NET.Core.Win32Extras;
-using Silk.NET.Direct2D;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -14,7 +12,6 @@ using System.Media;
 using System.Numerics;
 using System.Text.Json;
 using static CCSC.StoryItems.StoryEnums;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using Enum = System.Enum;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -43,15 +40,13 @@ public partial class Main : Form
     private Node nodeToLinkFrom;
     private Point oldMousePosBeforeSpawnWindow = Point.Empty;
     private Point startSelectingMousePos = Point.Empty;
-    private const int scaleX = (int)(NodeSizeX * 1.5f);
-    private const int scaleY = (int)(NodeSizeY * 1.5f);
-    private readonly List<int> maxYperX = [];
+    public const int scaleX = (int)(NodeSizeX * 1.5f);
+    public const int scaleY = (int)(NodeSizeY * 1.5f);
     public static readonly List<Node> selected = [];
-    private readonly List<Node> visited = [];
     private readonly List<SizeF> SelectedNodeOffsets = [];
-    private static readonly SizeF NodeCenter = new(NodeSizeX / 2, NodeSizeY / 2);
-    private static readonly SizeF CircleSize = new(17, 17);
-    private RectangleF adjustedMouseClipBounds;
+    public static readonly SizeF NodeCenter = new(NodeSizeX / 2, NodeSizeY / 2);
+    public static readonly SizeF CircleSize = new(17, 17);
+    private static RectangleF adjustedMouseClipBounds;
     private SearchDialog searchWindow = null!;
     private SizeF OffsetFromDragClick = SizeF.Empty;
     private static bool needsSaving;
@@ -536,119 +531,11 @@ public partial class Main : Form
     {
         if (SelectedNode != Node.NullNode)
         {
-            return [.. GetLinkableNodeTypes(SelectedNode.Type)];
+            return [.. NodeConstants.GetLinkableNodeTypes(SelectedNode.Type)];
         }
         else
         {
-            return [.. GetLinkableNodeTypes(NodeType.Null)];
-        }
-    }
-
-    private static SpawnableNodeType[] GetLinkableNodeTypes(NodeType input)
-    {
-        //constructed as the inverse of AllLink()
-        if (SelectedCharacter == Player)
-        {
-            //main story link options are different than characterstory
-            switch (input)
-            {
-                case NodeType.Criterion:
-                {
-                    return [SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.CriteriaGroup, SpawnableNodeType.GameEvent, SpawnableNodeType.EventTrigger, SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.ItemGroup, SpawnableNodeType.Value];
-                }
-                case NodeType.ItemAction:
-                case NodeType.UseWith:
-                {
-                    return [SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent];
-                }
-                case NodeType.InteractiveItemBehaviour:
-                {
-                    return [SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent, SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.ItemGroup];
-                }
-                case NodeType.ItemGroupBehaviour:
-                {
-                    return [SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent, SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith];
-                }
-                case NodeType.CriteriaGroup:
-                {
-                    return [SpawnableNodeType.CriteriaGroup, SpawnableNodeType.Criterion];
-                }
-                case NodeType.ItemGroup:
-                {
-                    return [SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent];
-                }
-                case NodeType.Value:
-                {
-                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion, SpawnableNodeType.Value];
-                }
-                case NodeType.EventTrigger:
-                {
-                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion];
-                }
-                case NodeType.GameEvent:
-                {
-                    return [SpawnableNodeType.Criterion, SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.EventTrigger, SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.ItemGroup, SpawnableNodeType.Value];
-                }
-                default:
-                {
-                    return [SpawnableNodeType.ItemAction, SpawnableNodeType.UseWith, SpawnableNodeType.EventTrigger, SpawnableNodeType.InteractiveItemBehaviour, SpawnableNodeType.ItemGroupBehaviour, SpawnableNodeType.ItemGroup, SpawnableNodeType.Value, SpawnableNodeType.CriteriaGroup];
-                }
-            }
-        }
-        else
-        {
-            //has more than main story as the interactions are added
-            switch (input)
-            {
-                case NodeType.Criterion:
-                {
-                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.EventTrigger, SpawnableNodeType.AlternateText, SpawnableNodeType.Response, SpawnableNodeType.BGC, SpawnableNodeType.ItemInteraction, SpawnableNodeType.ItemGroupInteraction, SpawnableNodeType.Quest, SpawnableNodeType.Value];
-                }
-                case NodeType.AlternateText:
-                {
-                    return [SpawnableNodeType.Criterion, SpawnableNodeType.Dialogue];
-                }
-                case NodeType.Response:
-                {
-                    return [SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent, SpawnableNodeType.Dialogue];
-                }
-                case NodeType.Dialogue:
-                {
-                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Response, SpawnableNodeType.AlternateText];
-                }
-                case NodeType.BGC:
-                {
-                    return [SpawnableNodeType.Criterion, SpawnableNodeType.GameEvent, SpawnableNodeType.BGCResponse];
-                }
-                case NodeType.BGCResponse:
-                {
-                    return [SpawnableNodeType.BGC];
-                }
-                case NodeType.Value:
-                {
-                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion, SpawnableNodeType.Value];
-                }
-                case NodeType.Quest:
-                {
-                    return [SpawnableNodeType.Quest, SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion];
-                }
-                case NodeType.ItemInteraction:
-                case NodeType.ItemGroupInteraction:
-                case NodeType.Personality:
-                case NodeType.EventTrigger:
-                case NodeType.State:
-                {
-                    return [SpawnableNodeType.GameEvent, SpawnableNodeType.Criterion];
-                }
-                case NodeType.GameEvent:
-                {
-                    return [SpawnableNodeType.Criterion, SpawnableNodeType.EventTrigger, SpawnableNodeType.Value, SpawnableNodeType.Response, SpawnableNodeType.Dialogue, SpawnableNodeType.BGC, SpawnableNodeType.ItemInteraction, SpawnableNodeType.ItemGroupInteraction, SpawnableNodeType.Quest];
-                }
-                default:
-                {
-                    return [SpawnableNodeType.EventTrigger, SpawnableNodeType.Value, SpawnableNodeType.Dialogue, SpawnableNodeType.BGC, SpawnableNodeType.GameEvent];
-                }
-            }
+            return [.. NodeConstants.GetLinkableNodeTypes(NodeType.Null)];
         }
     }
 
@@ -1175,7 +1062,7 @@ public partial class Main : Form
         screenY = (graphY - OffsetY[SelectedCharacter]) * Scaling[SelectedCharacter];
     }
 
-    private Node GetNodeAtPoint(PointF mouseGraphLocation)
+    internal static Node GetNodeAtPoint(PointF mouseGraphLocation)
     {
         if (adjustedMouseClipBounds.Contains(mouseGraphLocation))
         {
@@ -1280,7 +1167,7 @@ public partial class Main : Form
         }
 
         AddCharacterStory(newChar);
-        SetupStartPositions();
+        Positioner.SetupStartPositions(nodes);
         return;
     }
 
@@ -1352,7 +1239,7 @@ public partial class Main : Form
             AddCharacterStory(Characters.Stephanie.ToString());
             AddCharacterStory(Characters.Vickie.ToString());
             ExtractAndAddStories(Player, StoryName);
-            SetupStartPositions();
+            Positioner.SetupStartPositions(nodes);
             SelectFile(Characters.Vickie.ToString());
         }
     }
@@ -1749,7 +1636,7 @@ public partial class Main : Form
 
         if (!TryLoadOldPositions())
         {
-            SetupStartPositions();
+            Positioner.SetupStartPositions(nodes);
             SafeSavePositions();
         }
 
@@ -1780,7 +1667,7 @@ public partial class Main : Form
             {
                 if (isFirstLoad)
                 {
-                    SetupStartPositions();
+                    Positioner.SetupStartPositions(nodes);
                 }
                 SavePositions();
             }
@@ -1838,7 +1725,7 @@ public partial class Main : Form
                 {
                     Debug.WriteLine(fileStore + "|" + node.FileName + "|" + node.Type + ":" + node.ID);
                 }
-                SetStartPositionsForNodesInList(10, 0, nodes[fileStore], notSet, false);
+                Positioner.SetStartPositionsForNodesInList(10, 0, nodes[fileStore], notSet, false);
                 hadNodesNewlySet = true;
             }
             if (nodes[fileStore].Nodes.Count > 0)
@@ -1992,164 +1879,6 @@ public partial class Main : Form
             StoryTree.SelectedNode = StoryTree.Nodes[0].LastNode!.LastNode;
         }
         StoryTree.ExpandAll();
-    }
-
-    private void SetupStartPositions()
-    {
-        foreach (var store in nodes.Keys)
-        {
-            if (nodes[store].Nodes.Count <= 0)
-            {
-                continue;
-            }
-
-            SelectedCharacter = store;
-
-            NodeStore nodeStore = nodes[store];
-            nodeStore.Positions.Clear();
-
-            //no idea why we have to clear it or where the wrong ones come from....
-            SetStartPositionsForNodesInList(100, 1, nodeStore, [.. nodeStore.Nodes]);
-
-            CenterAndSelectNode(nodes[store].Nodes.First(), 0.8f);
-        }
-    }
-
-    private void SetStartPositionsForNodesInList(int intX, int intY, NodeStore nodeStore, List<Node> nodeList, bool inListOnly = false)
-    {
-        int ParentEdgeMaxStartValue = 0;
-        maxYperX.Clear();
-        maxYperX.ExtendToIndex(intX, intY);
-
-        for (int i = 0; i < maxYperX.Count; i++)
-        {
-            maxYperX[i] = intY;
-        }
-
-        nodeList.Sort(new NodeComparers(nodeStore));
-        bool restarted = false;
-        int skipCount = 0;
-    Restart:
-        visited.Clear();
-        foreach (var key in nodeList)
-        {
-            Family family = nodeStore[key];
-            if (!restarted && (family.Parents.Count > ParentEdgeMaxStartValue || visited.Contains(key)))
-            {
-                skipCount++;
-                continue;
-            }
-
-            if (family.Childs.Count > 0)
-            {
-                intX = maxYperX.Count + 1;
-            }
-            else
-            {
-                intX += 1 + ParentEdgeMaxStartValue;
-            }
-            maxYperX.ExtendToIndex(intX, intY);
-
-            //selectedcharacter is set correctly here
-            intX = SetStartPosForConnected(intX, nodeStore, key, inListOnly);
-        }
-        if (!restarted && skipCount == nodeList.Count)
-        {
-            restarted = true;
-            goto Restart;
-        }
-    }
-
-    private int SetStartPosForConnected(int intX, NodeStore nodeStore, Node start, bool inListOnly = false)
-    {
-        maxYperX.ExtendToIndex(intX, (int)(start.Position.Y / scaleY));
-
-        Queue<Node> toExplore = [];
-        Queue<int> layerX = [];
-        toExplore.Enqueue(start);
-        layerX.Enqueue(intX);
-        int lastIntX = 0;
-
-        //Debug.WriteLine($"starting on {key.ID} at {intX}|{1}");
-
-        while (toExplore.Count > 0)
-        {
-            var node = toExplore.Dequeue();
-            intX = layerX.Dequeue();
-
-            if (visited.Contains(node) || (inListOnly && !selected.Contains(node)))
-            {
-                continue;
-            }
-            else
-            {
-                visited.Add(node);
-            }
-
-            var childs = nodeStore.Childs(node);
-            childs.Sort(new NodeChildComparer(nodeStore));
-            var parents = nodeStore.Parents(node);
-            parents.Sort(new NodeComparers(nodeStore));
-
-            int newParentsX = intX - (parents.Count / 3) - 1;
-            newParentsX = Math.Max(0, newParentsX);
-            int newChildX = intX + (childs.Count / 3) + 1;
-            maxYperX.ExtendToIndex(newChildX, maxYperX[intX]);
-
-            int rest = (int)float.Round(node.Size.Height / NodeSizeY);
-            rest = rest <= 0 ? 1 : rest;
-
-            var newPos = new PointF(intX * scaleX, maxYperX[intX] * scaleY);
-            //if we are more right along the screen this is a child
-            if (lastIntX < intX)
-            {
-                ShoveNodesToRight(node, newPos);
-            }
-            else
-            {
-                ShoveNodesToLeft(node, newPos);
-            }
-
-            node.Position = newPos;
-
-            maxYperX[intX] += rest;
-
-            if (parents.Count > 0)
-            {
-                if (maxYperX[newParentsX] < maxYperX[intX] - rest)
-                {
-                    maxYperX[newParentsX] = maxYperX[intX] - rest;
-                }
-
-                foreach (var item in parents)
-                {
-                    if (visited.Contains(item) || (inListOnly && !selected.Contains(item)))
-                    {
-                        continue;
-                    }
-
-                    layerX.Enqueue(newParentsX);
-                    toExplore.Enqueue(item);
-                }
-            }
-
-            if (childs.Count > 0)
-            {
-                foreach (var item in childs)
-                {
-                    if (visited.Contains(item) || (inListOnly && !selected.Contains(item)))
-                    {
-                        continue;
-                    }
-
-                    layerX.Enqueue(newChildX);
-                    toExplore.Enqueue(item);
-                }
-            }
-            lastIntX = intX;
-        }
-
-        return intX;
     }
 
     private void Save_Click(object sender, EventArgs e)
@@ -5501,13 +5230,13 @@ public partial class Main : Form
                 ScreenPos -= new SizeF(NodeSizeX / 2, NodeSizeY / 2);
             }
 
-            ShoveNodesToRight(newNode, ScreenPos);
+            Positioner.ShoveNodesToRight(newNode, ScreenPos);
 
             newNode.Position = ScreenPos;
         }
         else
         {
-            ShoveNodesToRight(newNode, SelectedNode.Position + new Size(scaleX, 0));
+            Positioner.ShoveNodesToRight(newNode, SelectedNode.Position + new Size(scaleX, 0));
             newNode.Position = SelectedNode.Position + new Size(scaleX, 0);
         }
 
@@ -5894,7 +5623,7 @@ public partial class Main : Form
         for (int i = 0; i < childs.Count; i++)
         {
             var newPos = Node.Position + new SizeF(scaleX, (i - (childs.Count / 2)) * scaleY);
-            Instance.ShoveNodesToRight(childs[i], newPos);
+            Positioner.ShoveNodesToRight(childs[i], newPos);
 
             childs[i].Position = newPos;
         }
@@ -5917,50 +5646,8 @@ public partial class Main : Form
         for (int i = 0; i < parents.Count; i++)
         {
             var newPos = Node.Position - new SizeF(scaleX, (i - (parents.Count / 2)) * scaleY);
-            Instance.ShoveNodesToLeft(parents[i], newPos);
+            Positioner.ShoveNodesToLeft(parents[i], newPos);
             parents[i].Position = newPos;
-        }
-    }
-
-    private void ShoveNodesToLeft(Node nodeToPlace, PointF newPos)
-    {
-        var maybeNodePos = newPos;
-        Node maybeThere;
-        Node maybeNewSpot;
-
-        while ((maybeNewSpot = GetNodeAtPoint(maybeNodePos + NodeCenter)) != Node.NullNode && maybeNewSpot != nodeToPlace)
-        {
-            maybeNodePos = newPos;
-            while ((maybeThere = GetNodeAtPoint(maybeNodePos + NodeCenter)) != Node.NullNode && maybeThere != nodeToPlace)
-            {
-                maybeNodePos -= new SizeF(scaleX, 0);
-                if (GetNodeAtPoint(maybeNodePos + NodeCenter) == Node.NullNode)
-                {
-                    maybeThere.Position = maybeNodePos;
-                    break;
-                }
-            }
-        }
-    }
-
-    private void ShoveNodesToRight(Node nodeToPlace, PointF newPos)
-    {
-        var maybeNodePos = newPos;
-        Node maybeThere;
-        Node maybeNewSpot;
-
-        while ((maybeNewSpot = GetNodeAtPoint(maybeNodePos + NodeCenter)) != Node.NullNode && maybeNewSpot != nodeToPlace)
-        {
-            maybeNodePos = newPos;
-            while ((maybeThere = GetNodeAtPoint(maybeNodePos + NodeCenter)) != Node.NullNode && maybeThere != nodeToPlace)
-            {
-                maybeNodePos += new SizeF(scaleX, 0);
-                if (GetNodeAtPoint(maybeNodePos + NodeCenter) == Node.NullNode)
-                {
-                    maybeThere.Position = maybeNodePos;
-                    break;
-                }
-            }
         }
     }
 
@@ -5970,18 +5657,8 @@ public partial class Main : Form
         {
             return;
         }
-        //clickednode is set when this is called
-        visited.Clear();
-        var intX = (int)(SelectedNode.Position.X / scaleX);
-        var intY = (int)(SelectedNode.Position.Y / scaleY);
-        maxYperX.ExtendToIndex(intX, intY);
 
-        for (int i = 0; i < maxYperX.Count; i++)
-        {
-            maxYperX[i] = intY;
-        }
-        //selectedcharacter is set correctly here
-        SetStartPosForConnected(intX, nodes[SelectedCharacter], SelectedNode);
+        Positioner.SortConnected(SelectedNode, nodes[SelectedCharacter]);
 
         Graph.Invalidate();
     }
@@ -5992,7 +5669,7 @@ public partial class Main : Form
         {
             return;
         }
-        SetStartPositionsForNodesInList((int)(selected[0].Position.X / scaleX), (int)(selected[0].Position.Y / scaleY), nodes[SelectedCharacter], selected, true);
+        Positioner.SetStartPositionsForNodesInList((int)(selected[0].Position.X / scaleX), (int)(selected[0].Position.Y / scaleY), nodes[SelectedCharacter], selected, true);
 
         Graph.Invalidate();
     }
@@ -6003,7 +5680,7 @@ public partial class Main : Form
         {
             return;
         }
-        SetStartPositionsForNodesInList((int)(selected[0].Position.X / scaleX), (int)(selected[0].Position.Y / scaleY), nodes[SelectedCharacter], selected);
+        Positioner.SetStartPositionsForNodesInList((int)(selected[0].Position.X / scaleX), (int)(selected[0].Position.Y / scaleY), nodes[SelectedCharacter], selected);
 
         Graph.Invalidate();
     }

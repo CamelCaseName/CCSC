@@ -1,4 +1,6 @@
-﻿namespace CCSC.Nodestuff
+﻿
+using static CCSC.Nodestuff.NodeConstants;
+namespace CCSC.Nodestuff
 {
     public readonly ref struct NodeID(string file, NodeType Type, string ID, string text)
     {

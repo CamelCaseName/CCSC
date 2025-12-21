@@ -6,6 +6,7 @@ using Silk.NET.DirectWrite;
 using Silk.NET.DXGI;
 using Silk.NET.Maths;
 using System.Diagnostics;
+using static CCSC.Nodestuff.NodeConstants;
 using AlphaMode = Silk.NET.Direct2D.AlphaMode;
 using DashStyle = Silk.NET.Direct2D.DashStyle;
 using DWFactoryType = Silk.NET.DirectWrite.FactoryType;

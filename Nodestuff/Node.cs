@@ -2,70 +2,11 @@
 using CCSC.Glue;
 using CCSC.StoryItems;
 using System.Data;
-using System.Text.Json.Serialization;
 using static CCSC.StoryItems.StoryEnums;
+using static CCSC.Nodestuff.NodeConstants;
 
 namespace CCSC.Nodestuff
 {
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum NodeType
-    {
-        Achievement,
-        AlternateText,
-        BGC,
-        BGCResponse,
-        CharacterGroup,
-        Clothing,
-        CriteriaGroup,
-        Criterion,
-        Cutscene,
-        Dialogue,
-        Door,
-        EventTrigger,
-        GameEvent,
-        Inventory,
-        ItemAction,
-        ItemGroup,
-        ItemGroupBehaviour,
-        ItemGroupInteraction,
-        ItemInteraction,
-        Null,
-        Personality,
-        Pose,
-        Property,
-        Quest,
-        Response,
-        Social,
-        State,
-        InteractiveItemBehaviour,
-        UseWith,
-        Value,
-    }
-
-    public enum SpawnableNodeType
-    {
-        Achievement,
-        AlternateText,
-        BGC,
-        BGCResponse,
-        CriteriaGroup,
-        Criterion,
-        Dialogue,
-        EventTrigger,
-        GameEvent,
-        ItemAction,
-        ItemGroup,
-        ItemGroupInteraction,
-        ItemInteraction,
-        Quest,
-        Response,
-        InteractiveItemBehaviour,
-        UseWith,
-        Value,
-        ItemGroupBehaviour
-    }
-
     public sealed class MissingReferenceInfo
     {
         public MissingReferenceInfo()
