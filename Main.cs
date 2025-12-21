@@ -159,6 +159,8 @@ public partial class Main : Form
     public static Node LinkFrom => Instance.nodeToLinkFrom;
 
     //############ stuff to do after release
+    //todo fix usewiths
+    //todo copy paste
     //todo update story things for nocturnal temptations [only possible after csc release :( ]
     //todo fix broken propertyeditors, im sure there will be some
     //todo add indicator what node accepts linking
@@ -1271,7 +1273,7 @@ public partial class Main : Form
         return;
     }
 
-    private void AddStory()
+    private static void AddStory()
     {
         if (Story is null)
         {
@@ -1285,7 +1287,6 @@ public partial class Main : Form
 
             Files.Add(Player);
             AddStory(newStoryName);
-            SetupStartPositions();
         }
     }
 
@@ -1304,13 +1305,11 @@ public partial class Main : Form
         ExtractAndAddStories(newCharacterName);
     }
 
-    private void AddStory(string newStoryName)
+    private static void AddStory(string newStoryName)
     {
         Story = new(newStoryName);
         StoryName = newStoryName;
         SelectedCharacter = Player;
-
-        ExtractAndAddStories(Player, newStoryName);
     }
 
     private void NewStory_Click(object sender, EventArgs e)
@@ -1341,7 +1340,9 @@ public partial class Main : Form
             AddCharacterStory(Characters.Rachael.ToString());
             AddCharacterStory(Characters.Stephanie.ToString());
             AddCharacterStory(Characters.Vickie.ToString());
+            ExtractAndAddStories(Player, StoryName);
             SetupStartPositions();
+            SelectFile(Characters.Vickie.ToString());
         }
     }
 

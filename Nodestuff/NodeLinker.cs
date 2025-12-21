@@ -450,6 +450,7 @@ namespace CCSC.Nodestuff
                     if (link)
                     {
                         destination.Data<InteractiveitemBehaviour>()!.ItemActions.Add(source.Data<ItemAction>()!);
+                        source.ID = destination.Data<InteractiveitemBehaviour>()!.ItemName + " " + source.Data<ItemAction>()!.ActionName;
                     }
                     else
                     {
@@ -461,6 +462,7 @@ namespace CCSC.Nodestuff
                     if (link)
                     {
                         destination.Data<ItemGroupBehavior>()!.ItemActions.Add(source.Data<ItemAction>()!);
+                        source.ID = destination.Data<ItemGroupBehavior>()!.Name + " " + source.Data<ItemAction>()!.ActionName;
                     }
                     else
                     {
@@ -544,6 +546,7 @@ namespace CCSC.Nodestuff
                     if (link)
                     {
                         source.Data<InteractiveitemBehaviour>()!.ItemActions.Add(destination.Data<ItemAction>()!);
+                        destination.ID = source.Data<InteractiveitemBehaviour>()!.ItemName + " " + destination.Data<ItemAction>()!.ActionName;
                     }
                     else
                     {
@@ -580,6 +583,7 @@ namespace CCSC.Nodestuff
                     if (link)
                     {
                         source.Data<ItemGroupBehavior>()!.ItemActions.Add(destination.Data<ItemAction>()!);
+                        destination.ID = source.Data<ItemGroupBehavior>()!.Name + " " + destination.Data<ItemAction>()!.ActionName;
                     }
                     else
                     {
@@ -2870,7 +2874,16 @@ namespace CCSC.Nodestuff
 
         private static void HandleItemAction(NodeStore nodes, Node node, List<Node> newList, ItemAction _action, bool dupeTo = false)
         {
-            Node? result = newList.Find((n) => n.Type == NodeType.ItemAction && n.ID == _action.ActionName!);
+            string id = string.Empty;
+            if (node.DataType == typeof(ItemGroupBehavior))
+            {
+                id = node.Data<ItemGroupBehavior>()!.Name + " " + _action.ActionName;
+            }
+            else if (node.DataType == typeof(InteractiveitemBehaviour))
+            {
+                id = node.Data<InteractiveitemBehaviour>()!.ItemName + " " + _action.ActionName;
+            }
+            Node? result = newList.Find((n) => n.Type == NodeType.ItemAction && n.ID == id);
             if (result is not null)
             {
                 if (dupeTo)
