@@ -726,7 +726,6 @@ public partial class Main : Form
         else if (e.Button == MouseButtons.None && MouseButtons == MouseButtons.Left)
         {
             UpdateLeftClick(pos);
-            Graph.Invalidate();
             return;
         }
 
@@ -745,7 +744,6 @@ public partial class Main : Form
         {
             case MouseButtons.Left:
             {
-                Graph.Focus();
                 RightClickFrameCounter = 0;
                 if (e.Clicks == 2)
                 {
@@ -923,6 +921,20 @@ public partial class Main : Form
 
     private void UpdateLeftClick(PointF screenPos)
     {
+        if (NodeSpawnBox.Focused)
+        {
+            return;
+        }
+        foreach (var dropdown in PropertyInspector.Controls)
+        {
+            if (dropdown is ComboBox box)
+            {
+                if (box.DroppedDown && box.Focused)
+                {
+                    return;
+                }
+            }
+        }
         LeftClickFrameCounter++;
         if (LeftClickFrameCounter == 1)
         {
@@ -936,18 +948,8 @@ public partial class Main : Form
             }
         }
         //only pull focus if we are not in a dropdown
-
-        foreach (var dropdown in PropertyInspector.Controls)
-        {
-            if (dropdown is ComboBox box)
-            {
-                if (box.DroppedDown && box.Focused)
-                {
-                    return;
-                }
-            }
-        }
         Graph.Focus();
+        Graph.Invalidate();
     }
 
     private void UpdateRightClick(PointF graphPos)
@@ -3157,6 +3159,7 @@ public partial class Main : Form
                 type.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) =>
                     {
                         gevent.EventType = Enum.Parse<GameEvents>(type.SelectedItem.ToString()!);
+                        ShowProperties(node);
                     });
                 PropertyInspector.Controls.Add(type, 2, 0);
 
@@ -3543,20 +3546,20 @@ public partial class Main : Form
                     case GameEvents.MatchValue:
                     case GameEvents.CombineValue:
                     {
-                        PutCharacter1(node, gevent);
+                        PutCharacter1(node, gevent, false);
                         PutValueKey(node, gevent.Character, gevent);
 
                         Label typeLabel = GetLabel(gevent.EventType.ToString());
                         PropertyInspector.Controls.Add(typeLabel, GeventPropertyCounter++, 1);
 
-                        PutCharacter2(node, gevent);
+                        PutCharacter2(node, gevent, false);
                         PutValueValue(node, gevent.Character2, gevent);
                         break;
                     }
                     case GameEvents.ModifyValue:
                     {
                         gevent.Character2 = "#";
-                        PutCharacter1(node, gevent);
+                        PutCharacter1(node, gevent, false);
                         PutValueKey(node, gevent.Character, gevent);
                         PutEnumOption<Modification>(node, gevent);
                         PutNumberValue(gevent);
@@ -3671,7 +3674,7 @@ public partial class Main : Form
                     }
                     case GameEvents.RandomizeIntValue:
                     {
-                        PutCharacter1(node, gevent);
+                        PutCharacter1(node, gevent, false);
                         PutValueKey(node, gevent.Character, gevent);
                         PutNumberValue(gevent);
 
@@ -3994,17 +3997,16 @@ public partial class Main : Form
                 TextBox customName = new()
                 {
                     Text = eventTrigger.Name,
-                    Multiline = true,
                     WordWrap = true,
                     ScrollBars = ScrollBars.Both,
-                    Dock = DockStyle.Fill,
                     ForeColor = Color.LightGray,
                     BackColor = Color.FromArgb(50, 50, 50),
+                    Width = 400,
                 };
                 customName.TextChanged += (_, _) => eventTrigger.Name = customName.Text;
                 customName.TextChanged += (_, _) => { NodeLinker.UpdateLinks(node, node.FileName, nodes[SelectedCharacter]); Graph.Invalidate(); };
                 PropertyInspector.Controls.Add(customName, 1, 0);
-                PropertyInspector.SetColumnSpan(customName, 10);
+                PropertyInspector.SetColumnSpan(customName, 7);
 
                 switch (eventTrigger.Type)
                 {
@@ -4986,10 +4988,17 @@ public partial class Main : Form
         PropertyInspector.Controls.Add(number, GeventPropertyCounter++, 1);
     }
 
-    private void PutCharacter2(Node node, GameEvent gevent)
+    private void PutCharacter2(Node node, GameEvent gevent, bool includeNone = true)
     {
         ComboBox character2 = GetComboBox();
-        character2.Items.AddRange(Enum.GetNames<NoneCharacters>());
+        if (includeNone)
+        {
+            character2.Items.AddRange(Enum.GetNames<NoneCharacters>());
+        }
+        else
+        {
+            character2.Items.AddRange(Enum.GetNames<Characters>());
+        }
         character2.SelectedItem = gevent.Character2!;
         character2.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => gevent.Character2 = character2.SelectedItem.ToString()!);
         PropertyInspector.Controls.Add(character2, GeventPropertyCounter++, 1);
@@ -5045,10 +5054,17 @@ public partial class Main : Form
         PropertyInspector.Controls.Add(value, GeventPropertyCounter++, 1);
     }
 
-    private void PutCharacter1(Node node, GameEvent gevent)
+    private void PutCharacter1(Node node, GameEvent gevent, bool includeNone = false)
     {
         ComboBox character = GetComboBox();
-        character.Items.AddRange(Enum.GetNames<Characters>());
+        if (includeNone)
+        {
+            character.Items.AddRange(Enum.GetNames<NoneCharacters>());
+        }
+        else
+        {
+            character.Items.AddRange(Enum.GetNames<Characters>());
+        }
         character.SelectedItem = gevent.Character!;
         character.AddComboBoxHandler(node, nodes[SelectedCharacter], (_, _) => gevent.Character = character.SelectedItem.ToString()!);
         PropertyInspector.Controls.Add(character, GeventPropertyCounter++, 1);
