@@ -25,6 +25,7 @@
 Most, if not all editors you get when selecting a node behave the same way as in the original CSC by Eek!, i tweaked some. I plan on making them a little more clear, but as of now they look very devvy.
 Most node types are self explanatory, if you have issues here, go watch the videos on the csc by Eek! on Youtube.
 Everything that could be represented by node connections is.
+(if you're editing a value name and it does a "bing", the value name is not unique and must be changed further. What is shown on the node is the name used by the program.)
 
 # controls
 * select nodes to edit with left click
@@ -56,7 +57,7 @@ Everything that could be represented by node connections is.
   - Strict: the search term must match character by character, normally the search is fuzzy and can ignore one or two characters
   - SingleFile: only search in the currently selected file
   - FirstWordFile: the first word of the search term is the file to search in (as of 0.0.1 this is a bit wonky and doesnt work reliably)
-  - ﻿NodeContentOnly: ignore IDs and node types, only go for actual data
+  - NodeContentOnly: ignore IDs and node types, only go for actual data
 
 # screenshots
 <img width="1916" height="1051" alt="image" src="https://github.com/user-attachments/assets/f3696a7b-c49f-4b11-9742-83eb954b568f" />

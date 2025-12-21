@@ -153,6 +153,7 @@ public partial class Main : Form
         }
     }
     private Node SelectedNode = null!;
+    private int newValueCounter = 0;
 
     public static Node Selected => Instance.SelectedNode;
     public static Node Highlight => Instance.highlightNode;
@@ -268,8 +269,8 @@ public partial class Main : Form
     public void HandleKeyBoard(object? sender, KeyEventArgs e)
     {
         //get the shift key state so we can determine later if we want to redraw the tree on node selection or not
-        IsShiftPressed = e.KeyData.HasFlag(Keys.ShiftKey) || e.KeyData.HasFlag(Keys.Shift);
-        IsCtrlPressed = e.KeyData.HasFlag(Keys.Control) || e.KeyData.HasFlag(Keys.ControlKey);
+        IsShiftPressed = e.KeyData.HasFlag(Keys.Shift);
+        IsCtrlPressed = e.KeyData.HasFlag(Keys.Control);
 
         if (selected.Count > 0)
         {
@@ -334,6 +335,10 @@ public partial class Main : Form
                         }
                         selected.Clear();
                     }
+                }
+                else
+                {
+                    TryDeleteNode();
                 }
             }
             else if (StoryTree.Focused)
@@ -4369,10 +4374,20 @@ public partial class Main : Form
                     };
                     obj2.TextChanged += (_, args) =>
                     {
-                        Stories[node.FileName].StoryValues.Remove((string)node.RawData!);
-                        node.RawData = obj2.Text;
-                        node.ID = obj2.Text;
-                        Stories[node.FileName].StoryValues.Add((string)node.RawData!);
+                        if (Stories[node.FileName].StoryValues.Contains(obj2.Text))
+                        {
+                            //new value name would be duplicate, dont save it
+                            SystemSounds.Asterisk.Play();
+                        }
+                        else
+                        {
+                            Stories[node.FileName].StoryValues.Remove((string)node.RawData!);
+                            var oldVal = node.Data<string>()!;
+                            node.RawData = obj2.Text;
+                            node.ID = obj2.Text;
+                            Stories[node.FileName].StoryValues.Add((string)node.RawData!);
+                            NodeLinker.UpdateValue(node, oldVal);
+                        }
                     };
                     obj2.TextChanged += (_, _) => { NodeLinker.UpdateLinks(node, node.FileName, nodes[SelectedCharacter]); Graph.Invalidate(); };
                     PropertyInspector.Controls.Add(obj2);
@@ -5794,7 +5809,7 @@ public partial class Main : Form
             }
             case SpawnableNodeType.Value:
             {
-                string id = "ValueName";
+                string id = "ValueName" + newValueCounter++;
                 newNode = new Node(id, NodeType.Value, string.Empty, nodes[character].Positions, character)
                 {
                     RawData = id,
@@ -5813,6 +5828,9 @@ public partial class Main : Form
                 {
                     Stories[character].StoryValues.Add(newNode.Data<string>()!);
                 }
+
+                NodeLinker.UpdateValue(newNode, string.Empty);
+
                 break;
             }
             case SpawnableNodeType.UseWith:

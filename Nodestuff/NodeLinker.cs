@@ -9,6 +9,15 @@ namespace CCSC.Nodestuff
 {
     internal static partial class NodeLinker
     {
+        public static void UpdateValue(Node node, string oldName)
+        {
+            if (node.DataType == typeof(string))
+            {
+                Values.Remove(node.FileName + oldName);
+                Values.Add(node.FileName + node.Data<string>()!, node);
+            }
+        }
+
         private static readonly List<Node> Doors = [];
         private static readonly Dictionary<string, Node> Values = [];
         private static readonly List<Node> Socials = [];
@@ -1461,43 +1470,49 @@ namespace CCSC.Nodestuff
                         }
                         case CompareTypes.CompareValues:
                         {
-                            Values.TryGetValue(criterion.Character + criterion.Key, out result);
-                            if (result is not null)
+                            if (criterion.Key != IItem.hash && criterion.Key != string.Empty)
                             {
-                                if (dupeTo)
+                                Values.TryGetValue(criterion.Character + criterion.Key, out result);
+                                if (result is not null)
                                 {
-                                    dupedResult = result;
-                                    wasDuped = result.DupeToOtherSorting(node.FileName);
-                                }
+                                    if (dupeTo)
+                                    {
+                                        dupedResult = result;
+                                        wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    }
 
-                                nodes.AddParent(node, result);
-                            }
-                            else if (dupeTo)
-                            {
-                                wasDuped = true;
-                                //create and add value node, hasnt been referenced yet
-                                var value = new Node(criterion.Key!, NodeType.Value, criterion.Character + " value " + criterion.Key + ", referenced values: " + GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value + ", ", criterion.Character);
-                                Values.Add(value.FileName + value.ID, value);
-                                nodes.AddParent(node, value);
-                            }
-                            Values.TryGetValue(criterion.Character2 + criterion.Key2, out result);
-                            if (result is not null)
-                            {
-                                if (dupeTo)
+                                    nodes.AddParent(node, result);
+                                }
+                                else if (dupeTo)
                                 {
-                                    dupedResult = result;
-                                    wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    wasDuped = true;
+                                    //create and add value node, hasnt been referenced yet
+                                    var value = new Node(criterion.Key!, NodeType.Value, criterion.Character + " value " + criterion.Key + ", referenced values: " + GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value + ", ", criterion.Character);
+                                    Values.Add(value.FileName + value.ID, value);
+                                    nodes.AddParent(node, value);
                                 }
-
-                                nodes.AddParent(node, result);
                             }
-                            else if (dupeTo)
+                            if (criterion.Key2 != IItem.hash && criterion.Key2 != string.Empty)
                             {
-                                wasDuped = true;
-                                //create and add value node, hasnt been referenced yet
-                                var value = new Node(criterion.Key2!, NodeType.Value, criterion.Character + " value " + criterion.Key2 + ", referenced values: " + GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value + ", ", criterion.Character);
-                                Values.Add(value.FileName + value.ID, value);
-                                nodes.AddParent(node, value);
+                                Values.TryGetValue(criterion.Character2 + criterion.Key2, out result);
+                                if (result is not null)
+                                {
+                                    if (dupeTo)
+                                    {
+                                        dupedResult = result;
+                                        wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    }
+
+                                    nodes.AddParent(node, result);
+                                }
+                                else if (dupeTo)
+                                {
+                                    wasDuped = true;
+                                    //create and add value node, hasnt been referenced yet
+                                    var value = new Node(criterion.Key2!, NodeType.Value, criterion.Character + " value " + criterion.Key2 + ", referenced values: " + GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value + ", ", criterion.Character);
+                                    Values.Add(value.FileName + value.ID, value);
+                                    nodes.AddParent(node, value);
+                                }
                             }
                             break;
                         }
@@ -1878,30 +1893,33 @@ namespace CCSC.Nodestuff
                         }
                         case CompareTypes.Value:
                         {
-                            Values.TryGetValue(criterion.Character + criterion.Key, out result);
-                            if (result is not null)
+                            if (criterion.Key != IItem.hash && criterion.Key != string.Empty)
                             {
-                                if (dupeTo)
+                                Values.TryGetValue(criterion.Character + criterion.Key, out result);
+                                if (result is not null)
                                 {
-                                    dupedResult = result;
-                                    wasDuped = result.DupeToOtherSorting(node.FileName);
-                                }
+                                    if (dupeTo)
+                                    {
+                                        dupedResult = result;
+                                        wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    }
 
-                                if (!result.StaticText.Contains(GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value))
+                                    if (!result.StaticText.Contains(GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value))
+                                    {
+                                        result.StaticText += GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value + ", ";
+                                    }
+
+                                    nodes.AddParent(node, result);
+                                    break;
+                                }
+                                else if (dupeTo)
                                 {
-                                    result.StaticText += GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value + ", ";
+                                    wasDuped = true;
+                                    //create and add value node, hasnt been referenced yet
+                                    var value = new Node(criterion.Key!, NodeType.Value, criterion.Character + " value " + criterion.Key + ", referenced values: " + GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value + ", ", criterion.Character);
+                                    Values.Add(value.FileName + value.ID, value);
+                                    nodes.AddParent(node, value);
                                 }
-
-                                nodes.AddParent(node, result);
-                                break;
-                            }
-                            else if (dupeTo)
-                            {
-                                wasDuped = true;
-                                //create and add value node, hasnt been referenced yet
-                                var value = new Node(criterion.Key!, NodeType.Value, criterion.Character + " value " + criterion.Key + ", referenced values: " + GetSymbolsFromValueFormula(criterion.ValueFormula) + criterion.Value + ", ", criterion.Character);
-                                Values.Add(value.FileName + value.ID, value);
-                                nodes.AddParent(node, value);
                             }
                             break;
                         }
@@ -1947,43 +1965,49 @@ namespace CCSC.Nodestuff
                         case GameEvents.MatchValue:
                         case GameEvents.CombineValue:
                         {
-                            Values.TryGetValue(gameEvent.Character + gameEvent.Key, out result);
-                            if (result is not null)
+                            if (gameEvent.Key != IItem.hash && gameEvent.Key != string.Empty)
                             {
-                                if (dupeTo)
+                                Values.TryGetValue(gameEvent.Character + gameEvent.Key, out result);
+                                if (result is not null)
                                 {
-                                    dupedResult = result;
-                                    wasDuped = result.DupeToOtherSorting(node.FileName);
-                                }
+                                    if (dupeTo)
+                                    {
+                                        dupedResult = result;
+                                        wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    }
 
-                                nodes.AddChild(node, result);
-                            }
-                            else if (dupeTo)
-                            {
-                                wasDuped = true;
-                                //create and add value node, hasnt been referenced yet
-                                var value = new Node(gameEvent.Key!, NodeType.Value, gameEvent.Character + " value " + gameEvent.Key, gameEvent.Character);
-                                Values.Add(value.FileName + value.ID, value);
-                                nodes.AddChild(node, value);
-                            }
-                            Values.TryGetValue(gameEvent.Character2 + gameEvent.Value, out result);
-                            if (result is not null)
-                            {
-                                if (dupeTo)
+                                    nodes.AddChild(node, result);
+                                }
+                                else if (dupeTo)
                                 {
-                                    dupedResult = result;
-                                    wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    wasDuped = true;
+                                    //create and add value node, hasnt been referenced yet
+                                    var value = new Node(gameEvent.Key!, NodeType.Value, gameEvent.Character + " value " + gameEvent.Key, gameEvent.Character);
+                                    Values.Add(value.FileName + value.ID, value);
+                                    nodes.AddChild(node, value);
                                 }
-
-                                nodes.AddParent(node, result);
                             }
-                            else if (dupeTo)
+                            if (gameEvent.Value != IItem.hash && gameEvent.Value != string.Empty)
                             {
-                                wasDuped = true;
-                                //create and add value node, hasnt been referenced yet
-                                var value = new Node(gameEvent.Value!, NodeType.Value, gameEvent.Character2 + " value " + gameEvent.Value, gameEvent.Character);
-                                Values.Add(value.FileName + value.ID, value);
-                                nodes.AddParent(node, value);
+                                Values.TryGetValue(gameEvent.Character2 + gameEvent.Value, out result);
+                                if (result is not null)
+                                {
+                                    if (dupeTo)
+                                    {
+                                        dupedResult = result;
+                                        wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    }
+
+                                    nodes.AddParent(node, result);
+                                }
+                                else if (dupeTo)
+                                {
+                                    wasDuped = true;
+                                    //create and add value node, hasnt been referenced yet
+                                    var value = new Node(gameEvent.Value!, NodeType.Value, gameEvent.Character2 + " value " + gameEvent.Value, gameEvent.Character2);
+                                    Values.Add(value.FileName + value.ID, value);
+                                    nodes.AddParent(node, value);
+                                }
                             }
                             break;
                         }
@@ -2187,24 +2211,27 @@ namespace CCSC.Nodestuff
                         }
                         case GameEvents.ModifyValue:
                         {
-                            Values.TryGetValue(gameEvent.Character + gameEvent.Key, out result);
-                            if (result is not null)
+                            if (gameEvent.Key != IItem.hash && gameEvent.Key != string.Empty)
                             {
-                                if (dupeTo)
+                                Values.TryGetValue(gameEvent.Character + gameEvent.Key, out result);
+                                if (result is not null)
                                 {
-                                    dupedResult = result;
-                                    wasDuped = result.DupeToOtherSorting(node.FileName);
-                                }
+                                    if (dupeTo)
+                                    {
+                                        dupedResult = result;
+                                        wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    }
 
-                                nodes.AddChild(node, result);
-                            }
-                            else if (dupeTo)
-                            {
-                                wasDuped = true;
-                                //create and add value node, hasnt been referenced yet
-                                var value = new Node(gameEvent.Key!, NodeType.Value, gameEvent.Character + " value " + gameEvent.Key, gameEvent.Character);
-                                Values.Add(value.FileName + value.ID, value);
-                                nodes.AddChild(node, value);
+                                    nodes.AddChild(node, result);
+                                }
+                                else if (dupeTo)
+                                {
+                                    wasDuped = true;
+                                    //create and add value node, hasnt been referenced yet
+                                    var value = new Node(gameEvent.Key!, NodeType.Value, gameEvent.Character + " value " + gameEvent.Key, gameEvent.Character);
+                                    Values.Add(value.FileName + value.ID, value);
+                                    nodes.AddChild(node, value);
+                                }
                             }
                             break;
                         }
@@ -2292,24 +2319,27 @@ namespace CCSC.Nodestuff
                         }
                         case GameEvents.RandomizeIntValue:
                         {
-                            Values.TryGetValue(gameEvent.Character + gameEvent.Key, out result);
-                            if (result is not null)
+                            if (gameEvent.Key != IItem.hash && gameEvent.Key != string.Empty)
                             {
-                                if (dupeTo)
+                                Values.TryGetValue(gameEvent.Character + gameEvent.Key, out result);
+                                if (result is not null)
                                 {
-                                    dupedResult = result;
-                                    wasDuped = result.DupeToOtherSorting(node.FileName);
-                                }
+                                    if (dupeTo)
+                                    {
+                                        dupedResult = result;
+                                        wasDuped = result.DupeToOtherSorting(node.FileName);
+                                    }
 
-                                nodes.AddChild(node, result);
-                            }
-                            else if (dupeTo)
-                            {
-                                wasDuped = true;
-                                //create and add value node, hasnt been referenced yet
-                                var value = new Node(gameEvent.Key!, NodeType.Value, gameEvent.Character + " value " + gameEvent.Key, gameEvent.Character);
-                                Values.Add(value.FileName + value.ID, value);
-                                nodes.AddChild(node, value);
+                                    nodes.AddChild(node, result);
+                                }
+                                else if (dupeTo)
+                                {
+                                    wasDuped = true;
+                                    //create and add value node, hasnt been referenced yet
+                                    var value = new Node(gameEvent.Key!, NodeType.Value, gameEvent.Character + " value " + gameEvent.Key, gameEvent.Character);
+                                    Values.Add(value.FileName + value.ID, value);
+                                    nodes.AddChild(node, value);
+                                }
                             }
                             break;
                         }
